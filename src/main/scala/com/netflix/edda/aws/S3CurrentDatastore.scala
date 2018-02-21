@@ -79,7 +79,6 @@ class S3CurrentDatastore(val name: String) extends Datastore {
   def init() {
     implicit var client = writeDynamo
     s3.getBucketLocation(bucketName) match {
-      case "EU"|"eu-west-1" => s3.setEndpoint("s3-eu-west-1.amazonaws.com")
       case "US"|"" => s3.setEndpoint("s3.amazonaws.com")
       case location => s3.setEndpoint(s"s3-$location.amazonaws.com")
     }
