@@ -55,7 +55,12 @@ class S3CurrentDatastore(val name: String) extends Datastore {
     }
   }
 
-  lazy val s3     = new AwsClient(account).s3
+  lazy val s3Client = new AwsClient(account).s3
+  lazy val s3 = {
+    val region = s3Client.getBucketLocation(bucketName)
+    val client = new AwsClient(account, region).s3
+    client
+  }
   val readDynamo = new AwsClient(account).dynamo
   // disable retry's when writing to dynamo ... if initial request
   // gets a timeout we need to know as it will likely complete eventually
@@ -77,11 +82,7 @@ class S3CurrentDatastore(val name: String) extends Datastore {
   lazy val autoDelete = Utils.getProperty("edda", "s3current.autoDelete", name, "false")
     
   def init() {
-    implicit var client = writeDynamo
-    s3.getBucketLocation(bucketName) match {
-      case "US"|"" => s3.setEndpoint("s3.amazonaws.com")
-      case location => s3.setEndpoint(s"s3-$location.amazonaws.com")
-    }
+    implicit val client = writeDynamo
     DynamoDB.init(tableName, readCap, writeCap)
   }
 

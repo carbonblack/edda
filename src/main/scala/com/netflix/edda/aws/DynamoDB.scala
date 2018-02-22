@@ -19,12 +19,12 @@ import org.slf4j.LoggerFactory
 
 import com.netflix.edda.RequestId
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
 import com.amazonaws.services.dynamodbv2.model._
 
 object DynamoDB {
   private[this] val logger = LoggerFactory.getLogger(getClass)
-  def init(tableName: String, readCap: Long, writeCap: Long)(implicit client: AmazonDynamoDBClient) {
+  def init(tableName: String, readCap: Long, writeCap: Long)(implicit client: AmazonDynamoDB) {
     this.synchronized {
       val request = new DescribeTableRequest().withTableName(tableName)
       var continue = true
@@ -69,7 +69,7 @@ object DynamoDB {
     }
   }
 
-  def get(tableName: String, name: String, value: String)(implicit client: AmazonDynamoDBClient, req: RequestId): Option[Map[String,String]] = {
+  def get(tableName: String, name: String, value: String)(implicit client: AmazonDynamoDB, req: RequestId): Option[Map[String,String]] = {
     import collection.JavaConverters._
     val getRequest = new GetItemRequest().withTableName(tableName).withKey(Map(name->new AttributeValue(value)).asJava).withConsistentRead(true)
     var t0 = System.nanoTime()
@@ -127,7 +127,7 @@ object DynamoDB {
     }
   }
 
-  def put(tableName: String, attributes: Map[String,Any], expected: Map[String,Any] = Map())(implicit client: AmazonDynamoDBClient, req: RequestId) = {
+  def put(tableName: String, attributes: Map[String,Any], expected: Map[String,Any] = Map())(implicit client: AmazonDynamoDB, req: RequestId) = {
     import collection.JavaConverters._
     val t0 = System.nanoTime()
     val request = new PutItemRequest()
