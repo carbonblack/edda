@@ -101,7 +101,7 @@ object DynamoDB {
     }
 
     if( Option(item).isEmpty ) {
-      logger.error(s"$req Dynamo record for $name not found")
+      logger.error(s"$req Dynamo record for $name -> $value not found")
       return None
     }
     
