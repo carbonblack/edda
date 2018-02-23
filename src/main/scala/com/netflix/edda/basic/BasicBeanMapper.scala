@@ -99,7 +99,6 @@ class BasicBeanMapper extends BeanMapper {
         item => {
           val entry = item.asInstanceOf[java.util.Map.Entry[String, Any]]
           val value = mkValue(entry.getValue)
-          logger.info(entry.getKey)
           entry.getKey -> keyMappers(obj, entry.getKey, value)
         }).collect({
         case (name: String, Some(value)) =>
@@ -123,7 +122,6 @@ class BasicBeanMapper extends BeanMapper {
         }
       ).map(
         item => {
-          logger.info(item.getName)
           val value = mkValue(item.invoke(obj))
           if (item.getName == s"getClass") {
              s"class" -> keyMappers(obj, item.getName, value)
