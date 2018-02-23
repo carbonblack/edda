@@ -144,7 +144,6 @@ class BasicBeanMapper extends BeanMapper {
     * was originally */
   def fromBean(obj: AnyRef): AnyRef = {
     if (obj.getClass.isEnum) {
-      logger.info(s"got enum")
       Map(
         "class" -> obj.getClass.getName,
         "name" -> obj.getClass.getMethod("name").invoke(obj).asInstanceOf[String])

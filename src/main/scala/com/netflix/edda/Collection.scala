@@ -496,8 +496,10 @@ abstract class Collection(val ctx: Collection.Context) extends Queryable {
       stopwatch.stop()
     }
     loadCounter.increment()
-    if (logger.isInfoEnabled) logger.info("{}{} Loaded {} records in {} sec", toObjects(
-      req, this, recordSet.records.size, stopwatch.getDuration(TimeUnit.MILLISECONDS) / 1000.0 -> "%.2f"))
+    if (logger.isInfoEnabled) {
+      val elapsed = stopwatch.getDuration(TimeUnit.MILLISECONDS) / 1000.0
+       logger.info(s"$req$this Loaded ${recordSet.records.size} records in $elapsed sec")
+    }
     recordSet.copy(meta = recordSet.meta + ("source" -> "load") + ("req" -> req.id))
   }
 

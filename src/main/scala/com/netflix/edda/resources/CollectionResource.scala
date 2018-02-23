@@ -369,7 +369,7 @@ class CollectionResource {
       scala.concurrent.Await.result(
         coll.query(query, details.limit, details.timeTravelling || details.live, keys, replicaOk = if ( details.live ) false else true),
         scala.concurrent.duration.Duration(
-          60000,
+          120000,
           scala.concurrent.duration.MILLISECONDS
         )
       )

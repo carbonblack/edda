@@ -139,8 +139,10 @@ abstract class Crawler extends Observable {
         stopwatch.stop()
       }
 
-      if (logger.isInfoEnabled) logger.info("{} {} Crawled {} records in {} sec", toObjects(
-        req, this, newRecords.size, stopwatch.getDuration(TimeUnit.MILLISECONDS) / 1000D -> "%.2f"))
+      if (logger.isInfoEnabled) {
+        val elaspsed = stopwatch.getDuration(TimeUnit.MILLISECONDS) / 1000D
+        logger.info(s"$req$this Crawled ${newRecords.size} records in $elaspsed sec")
+      }
       crawlCounter.increment(newRecords.size)
       Observable.localState(state).observers.foreach(o => {
           val msg = Crawler.CrawlResult(this, RecordSet(newRecords, Map("source" -> "crawl", "req" -> req.id)))
