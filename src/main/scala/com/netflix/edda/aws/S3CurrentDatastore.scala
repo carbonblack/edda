@@ -24,8 +24,12 @@ import com.netflix.edda.Utils
 
 import org.slf4j.LoggerFactory
 
-import com.amazonaws.services.dynamodbv2.model._
-import com.amazonaws.services.s3.model._
+import java.nio.file.Paths
+
+import software.amazon.awssdk.services.dynamodb.model._
+import software.amazon.awssdk.services.s3.model._
+
+import software.amazon.awssdk.core.sync._
 
 import org.codehaus.jackson.JsonNode
 import org.codehaus.jackson.map.ObjectMapper
@@ -57,7 +61,8 @@ class S3CurrentDatastore(val name: String) extends Datastore {
 
   lazy val s3Client = new AwsClient(account).s3
   lazy val s3 = {
-    val region = s3Client.getBucketLocation(bucketName)
+    val request = GetBucketLocationRequest.builder().bucket(bucketName).build()
+    val region = s3Client.getBucketLocation(request).locationConstraintString()
     val client = new AwsClient(account, region).s3
     client
   }
@@ -92,7 +97,7 @@ class S3CurrentDatastore(val name: String) extends Datastore {
       loadImpl(replicaOk)
     } catch {
       // object does not exist, which might mean it was just deleted, so just try to reload
-      case e: AmazonS3Exception if e.getStatusCode == 404 => {
+      case e: NoSuchKeyException => {
         loadImpl(replicaOk)
       }
       // if we get a socket timeout then try once more, probably a temp network glitch
@@ -120,18 +125,16 @@ class S3CurrentDatastore(val name: String) extends Datastore {
     var mtime: DateTime = DateTime.now
     var userMeta = Map[String,String]()
     val bytes = try {
-      val s3Object = s3.getObject(bucketName, location)
-      val meta = s3Object.getObjectMetadata();
-      mtime = new DateTime(meta.getLastModified())
+      val request = GetObjectRequest.builder().bucket(bucketName).key(location).build()
+      val response: ResponseBytes[GetObjectResponse] = s3.getObject(request,  StreamingResponseHandler.toBytes())
+      val s3Object = response.response()
+      mtime = new DateTime(s3Object.lastModified())
       
-      userMeta = meta.getUserMetadata().asScala.toMap
+      userMeta = s3Object.metadata().asScala.toMap
       val origReqId = userMeta("reqid")
       md5 = userMeta.get("md5").getOrElse("")
       logger.info(s"$req$this Loaded $name: $location [$md5] ($origReqId) modifed: $mtime")
-      
-      val inputStream = s3Object.getObjectContent
-      var out = IOUtils.toByteArray(inputStream)
-      inputStream.close()
+      val out = response.asByteArray()
       out
     } finally {
       val t1 = System.nanoTime()
@@ -213,17 +216,17 @@ class S3CurrentDatastore(val name: String) extends Datastore {
 
     var t0 = System.nanoTime()
     try {
-      val is = new ByteArrayInputStream(bytes)
-      val metadata = new ObjectMetadata
-      metadata.setContentLength(bytes.size)
-      metadata.setContentType("application/json")
+      //val is = new ByteArrayInputStream(bytes)
       val md5 = Base64.encodeBase64String(MessageDigest.getInstance("MD5").digest(bytes)).trim
-      metadata.setContentMD5(md5)
-      metadata.setUserMetadata(
-        Map("reqid" -> req.id, "md5" -> md5, "compressed" -> "true").asJava
-      )
-      val putRequest = new PutObjectRequest(bucketName, location, is, metadata)
-      s3.putObject(putRequest)
+      val putRequest = PutObjectRequest.builder()
+        .bucket(bucketName)
+        .key(location)
+        .contentLength(bytes.size)
+        .contentType("application/json")
+        .contentMD5(md5)
+        .metadata(Map("reqid" -> req.id, "md5" -> md5, "compressed" -> "true").asJava)
+        .build()
+      s3.putObject(putRequest, RequestBody.of(bytes))
     } finally {
       val t1 = System.nanoTime()
       val lapse = (t1 - t0) / 1000000;
@@ -247,7 +250,7 @@ class S3CurrentDatastore(val name: String) extends Datastore {
     if( ! oldLocation.isEmpty && autoDelete.get.toBoolean ) {
       t0 = System.nanoTime()
       try {
-        s3.deleteObject(bucketName, oldLocation)
+        s3.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(oldLocation).build())
       } catch {
         case e: Exception => logger.error(s"$req$this failed to delete $oldLocation from $bucketName", e)
       } finally {

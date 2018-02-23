@@ -19,45 +19,50 @@ import org.slf4j.LoggerFactory
 
 import com.netflix.edda.RequestId
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
-import com.amazonaws.services.dynamodbv2.model._
+import software.amazon.awssdk.services.dynamodb.DynamoDBClient
+import software.amazon.awssdk.services.dynamodb.model._
 
 object DynamoDB {
   private[this] val logger = LoggerFactory.getLogger(getClass)
-  def init(tableName: String, readCap: Long, writeCap: Long)(implicit client: AmazonDynamoDB) {
+  def init(tableName: String, readCap: Long, writeCap: Long)(implicit client: DynamoDBClient) {
     this.synchronized {
-      val request = new DescribeTableRequest().withTableName(tableName)
+      val request = DescribeTableRequest.builder().tableName(tableName).build()
       var continue = true
       while (continue) {
         try {
-          val table: TableDescription = client.describeTable(request).getTable
+          val table: TableDescription = client.describeTable(request).table
           
-          if (table.getProvisionedThroughput.getReadCapacityUnits != readCap ||
-              table.getProvisionedThroughput.getWriteCapacityUnits != writeCap ) {
-            val request = new UpdateTableRequest().withTableName(tableName).
-            withProvisionedThroughput(
-              new ProvisionedThroughput().
-                withReadCapacityUnits(readCap).
-                withWriteCapacityUnits(writeCap)
-            )
+          if (table.provisionedThroughput.readCapacityUnits != readCap ||
+              table.provisionedThroughput.writeCapacityUnits != writeCap ) {
+            val request = UpdateTableRequest.builder()
+              .tableName(tableName)
+              .provisionedThroughput(
+                ProvisionedThroughput.builder()
+                  .readCapacityUnits(readCap)
+                  .writeCapacityUnits(writeCap)
+                  .build()
+              )
+              .build()
             client.updateTable(request)
             Thread.sleep(100)
           }
           
-          continue = table.getTableStatus != "ACTIVE"
+          continue = table.tableStatus != "ACTIVE"
         }
         catch {
           case e: ResourceNotFoundException => {
-            val key = new KeySchemaElement().withAttributeName("name").withKeyType(KeyType.HASH)
-            val keyAttr = new AttributeDefinition().withAttributeName("name").withAttributeType("S")
-            val throughput = new ProvisionedThroughput().
-              withReadCapacityUnits(readCap).
-              withWriteCapacityUnits(writeCap)
-            val request = new CreateTableRequest().
-              withTableName(tableName).
-              withKeySchema(key).
-              withAttributeDefinitions(keyAttr).
-              withProvisionedThroughput(throughput)
+            val key = KeySchemaElement.builder().attributeName("name").keyType(KeyType.HASH).build()
+            val keyAttr = AttributeDefinition.builder().attributeName("name").attributeType("S").build()
+            val throughput = ProvisionedThroughput.builder()
+              .readCapacityUnits(readCap)
+              .writeCapacityUnits(writeCap)
+              .build()
+            val request = CreateTableRequest.builder()
+              .tableName(tableName)
+              .keySchema(key)
+              .attributeDefinitions(keyAttr)
+              .provisionedThroughput(throughput)
+              .build()
             client.createTable(request)
             Thread.sleep(5000)
           }
@@ -69,12 +74,12 @@ object DynamoDB {
     }
   }
 
-  def get(tableName: String, name: String, value: String)(implicit client: AmazonDynamoDB, req: RequestId): Option[Map[String,String]] = {
+  def get(tableName: String, name: String, value: String)(implicit client: DynamoDBClient, req: RequestId): Option[Map[String,String]] = {
     import collection.JavaConverters._
-    val getRequest = new GetItemRequest().withTableName(tableName).withKey(Map(name->new AttributeValue(value)).asJava).withConsistentRead(true)
+    val getRequest = GetItemRequest.builder().tableName(tableName).key(Map(name->AttributeValue.builder().s(value).build()).asJava).consistentRead(true).build()
     var t0 = System.nanoTime()
     val item = try {
-      client.getItem(getRequest).getItem
+      client.getItem(getRequest).item
     }
     catch {
       case e: ResourceNotFoundException => {
@@ -109,7 +114,7 @@ object DynamoDB {
       item.asScala.map(pair => {
         val key = pair._1
         val attr = pair._2
-        Option(attr.getS) orElse Option(attr.getN) orElse Option(attr.getB) orElse None match {
+        Option(attr.s) orElse Option(attr.n) orElse Option(attr.b) orElse None match {
           case Some(value: String) => key -> value
           case _ => throw new java.lang.RuntimeException(s"key $key is none of [String,Number,Binary] on record $value in table $tableName")
         }
@@ -119,33 +124,33 @@ object DynamoDB {
 
   def toAttributeValue(value: Any): AttributeValue = {
     value match {
-      case v: String => new AttributeValue().withS(v)
-      case Int|Long|Float|Double => new AttributeValue().withN(value.toString)
-      case _:java.lang.Integer|_:java.lang.Long|_:java.lang.Float|_:java.lang.Double => new AttributeValue().withN(value.toString)
-      case v: Array[Byte] => new AttributeValue().withB(java.nio.ByteBuffer.wrap(v))
+      case v: String => AttributeValue.builder().s(v).build()
+      case Int|Long|Float|Double => AttributeValue.builder().n(value.toString).build()
+      case _:java.lang.Integer|_:java.lang.Long|_:java.lang.Float|_:java.lang.Double => AttributeValue.builder().n(value.toString).build()
+      case v: Array[Byte] => AttributeValue.builder().b(java.nio.ByteBuffer.wrap(v)).build()
       case _ => throw new java.lang.RuntimeException(s"unable to convert ${value.getClass.getName} to DynamoDB AttributeValue")
     }
   }
 
-  def put(tableName: String, attributes: Map[String,Any], expected: Map[String,Any] = Map())(implicit client: AmazonDynamoDB, req: RequestId) = {
+  def put(tableName: String, attributes: Map[String,Any], expected: Map[String,Any] = Map())(implicit client: DynamoDBClient, req: RequestId) = {
     import collection.JavaConverters._
     val t0 = System.nanoTime()
-    val request = new PutItemRequest()
-    try {
-      // write to DynamoDB
-      client.putItem(
-        request.withTableName(tableName).withItem(
-          attributes.map(pair => pair._1 -> toAttributeValue(pair._2)).toMap.asJava
-        ).withExpected(
-          expected.map(pair => {
+    val request = PutItemRequest.builder()
+      .tableName(tableName)
+      .item(attributes.map(pair => pair._1 -> toAttributeValue(pair._2)).toMap.asJava)
+      .expected(
+        expected.map(pair => {
             val name = pair._1
             pair._2 match {
-              case None => name -> new ExpectedAttributeValue().withExists(false)
-              case _ => name -> new ExpectedAttributeValue().withExists(true).withValue(toAttributeValue(pair._2))
+              case None => name -> ExpectedAttributeValue.builder().exists(false).build()
+              case _ => name -> ExpectedAttributeValue.builder().exists(true).value(toAttributeValue(pair._2)).build()
             }
           }).toMap.asJava
-        )
       )
+      .build()
+    try {
+      // write to DynamoDB
+      client.putItem(request)
     } catch {
       case e: InternalServerErrorException => {
         logger.warn(s"$req error attempting to write $request to dynamodb: $e")
@@ -154,7 +159,7 @@ object DynamoDB {
 
         // first we need to figure out what the primary key is
         // Note: this assumes only single key schema
-        val key = client.describeTable(new DescribeTableRequest().withTableName(tableName)).getTable().getKeySchema.asScala.head.getAttributeName()
+        val key = client.describeTable(DescribeTableRequest.builder().tableName(tableName).build()).table().keySchema.asScala.head.attributeName()
 
         val item = this.get(tableName, key, attributes(key).asInstanceOf[String])
         // compare everything in item to the arguments set in the attributes map

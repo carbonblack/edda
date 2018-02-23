@@ -1,5 +1,5 @@
 
-val aws        = "1.11.282"
+val aws        = "2.0.0-preview-8"
 val jackson    = "1.9.2"
 val jersey     = "1.11"
 val log4j      = "1.2.12"
@@ -9,7 +9,20 @@ lazy val edda = project.in(file("."))
   .configure(BuildSettings.profile)
   .enablePlugins(JettyPlugin)
   .settings(libraryDependencies ++= Seq(
-    "com.amazonaws"                  % "aws-java-sdk"             % aws,
+    "software.amazon.awssdk"         % "dynamodb"                 % aws,
+    "software.amazon.awssdk"         % "s3"                       % aws,
+    "software.amazon.awssdk"         % "ec2"                      % aws,
+    "software.amazon.awssdk"         % "iam"                      % aws,
+    "software.amazon.awssdk"         % "autoscaling"              % aws,
+    "software.amazon.awssdk"         % "elasticloadbalancing"     % aws,
+    "software.amazon.awssdk"         % "elasticloadbalancingv2"   % aws,
+    "software.amazon.awssdk"         % "sqs"                      % aws,
+    "software.amazon.awssdk"         % "cloudwatch"               % aws,
+    "software.amazon.awssdk"         % "route53"                  % aws,
+    "software.amazon.awssdk"         % "rds"                      % aws,
+    "software.amazon.awssdk"         % "elasticache"              % aws,
+    "software.amazon.awssdk"         % "cloudformation"           % aws,
+    "software.amazon.awssdk"         % "sts"                      % aws,
     "com.netflix.archaius"           % "archaius-core"            % "0.5.6",
     "commons-beanutils"              % "commons-beanutils"        % "1.8.2",
     "commons-collections"            % "commons-collections"      % "3.2.1",
@@ -17,6 +30,7 @@ lazy val edda = project.in(file("."))
     "com.googlecode.java-diff-utils" % "diffutils"                % "1.2.1",
     "org.elasticsearch"              % "elasticsearch"            % "0.90.3",
     "org.apache.httpcomponents"      % "httpclient"               % "4.1",
+    "com.fasterxml.jackson.core"     % "jackson-annotations"      % "2.9.0",
     "org.codehaus.jackson"           % "jackson-core-asl"         % jackson,
     "org.codehaus.jackson"           % "jackson-mapper-asl"       % jackson,
     "com.sun.jersey"                 % "jersey-core"              % jersey,

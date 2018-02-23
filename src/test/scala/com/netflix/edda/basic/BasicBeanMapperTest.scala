@@ -19,9 +19,10 @@ import org.slf4j.LoggerFactory
 import org.joda.time.DateTime
 import java.util.{LinkedList => JList}
 import java.util.Date
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.Instance
-import com.amazonaws.services.autoscaling.model.TagDescription
+import java.time.Instant
+import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup
+import software.amazon.awssdk.services.autoscaling.model.Instance
+import software.amazon.awssdk.services.autoscaling.model.TagDescription
 
 import org.scalatest.FunSuite
 
@@ -30,44 +31,46 @@ class BasicBeanMapperTest extends FunSuite {
   test("fromBean") {
     val mapper = new BasicBeanMapper
 
-    val asg = new AutoScalingGroup
-    asg.setVPCZoneIdentifier("")
-    asg.setAutoScalingGroupARN("ARN")
-    asg.setAutoScalingGroupName("asgName")
     val azs = new JList[String]()
     azs.add("us-east-1c")
-    asg.setAvailabilityZones(azs)
-    asg.setCreatedTime(new Date(0))
-    asg.setDefaultCooldown(10)
-    asg.setDesiredCapacity(2)
-    asg.setHealthCheckGracePeriod(600)
-    asg.setHealthCheckType("EC2")
 
-    val inst1 = new Instance
-    inst1.setAvailabilityZone("us-east-1c")
-    inst1.setHealthStatus("Healthy")
-    inst1.setInstanceId("i-0123456789")
-    inst1.setLaunchConfigurationName("launchConfigName")
-    inst1.setLifecycleState("InService")
+    val inst1 = Instance.builder()
+      .availabilityZone("us-east-1c")
+      .healthStatus("Healthy")
+      .instanceId("i-0123456789")
+      .launchConfigurationName("launchConfigName")
+      .lifecycleState("InService")
+      .build()
     val instances = new JList[Instance]()
     instances.add(inst1)
-    asg.setInstances(instances)
 
-    asg.setLaunchConfigurationName("launchConfigName")
     val elbs = new JList[String]()
     elbs.add("elbName")
-    asg.setLoadBalancerNames(elbs)
-    asg.setMaxSize(2)
-    asg.setMinSize(2)
 
-    val tag = new TagDescription
-    tag.setKey("tagName")
-    tag.setValue("tagValue")
+    val tag = TagDescription.builder()
+      .key("tagName")
+      .value("tagValue")
+      .build()
     val tags = new JList[TagDescription]()
     tags.add(tag)
-    asg.setTags(tags)
 
-
+    val asg = AutoScalingGroup.builder()
+      .vpcZoneIdentifier("")
+      .autoScalingGroupARN("ARN")
+      .autoScalingGroupName("asgName")
+      .availabilityZones(azs)
+      .createdTime(Instant.ofEpochMilli(new Date(0).getTime()))
+      .defaultCooldown(10)
+      .desiredCapacity(2)
+      .healthCheckGracePeriod(600)
+      .healthCheckType("EC2")
+      .instances(instances)
+      .launchConfigurationName("launchConfigName")
+      .loadBalancerNames(elbs)
+      .maxSize(2)
+      .minSize(2)
+      .tags(tags)
+      .build()
     val expected = Map(
       "terminationPolicies" -> List(),
       "healthCheckGracePeriod" -> 600,
@@ -76,7 +79,7 @@ class BasicBeanMapperTest extends FunSuite {
           "resourceId" -> null,
           "resourceType" -> null,
           "key" -> "tagName",
-          "class" -> "com.amazonaws.services.autoscaling.model.TagDescription",
+          "class" -> "software.amazon.awssdk.services.autoscaling.model.TagDescription",
           "propagateAtLaunch" -> null,
           "value" -> "tagValue"
         )
@@ -92,7 +95,7 @@ class BasicBeanMapperTest extends FunSuite {
           "launchTemplate" -> null,
           "protectedFromScaleIn" -> null,
           "lifecycleState" -> "InService",
-          "class" -> "com.amazonaws.services.autoscaling.model.Instance",
+          "class" -> "software.amazon.awssdk.services.autoscaling.model.Instance",
           "launchConfigurationName" -> "launchConfigName"
         )
       ),
@@ -104,7 +107,7 @@ class BasicBeanMapperTest extends FunSuite {
       "suspendedProcesses" -> List(),
       "status" -> null,
       "desiredCapacity" -> 2,
-      "class" -> "com.amazonaws.services.autoscaling.model.AutoScalingGroup",
+      "class" -> "software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup",
       "enabledMetrics" -> List(),
       "newInstancesProtectedFromScaleIn" -> null,
       "maxSize" -> 2,
@@ -120,7 +123,7 @@ class BasicBeanMapperTest extends FunSuite {
     }
 
     val pf1: PartialFunction[(AnyRef, String, Option[Any]), Option[Any]] = {
-      case (obj: com.amazonaws.services.autoscaling.model.TagDescription, "value", Some(x: Any)) if obj.getKey == "tagName" => None
+      case (obj: software.amazon.awssdk.services.autoscaling.model.TagDescription, "value", Some(x: Any)) if obj.key == "tagName" => None
     }
     mapper.addKeyMapper(pf1)
 
@@ -129,7 +132,7 @@ class BasicBeanMapperTest extends FunSuite {
     }
 
     val pf2: PartialFunction[(AnyRef, String, Option[Any]), Option[Any]] = {
-      case (obj: com.amazonaws.services.autoscaling.model.TagDescription, "value", Some(x: Any)) if obj.getKey == "tagName" => Some("newValue")
+      case (obj: software.amazon.awssdk.services.autoscaling.model.TagDescription, "value", Some(x: Any)) if obj.key == "tagName" => Some("newValue")
     }
     mapper.addKeyMapper(pf2)
 

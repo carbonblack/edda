@@ -29,46 +29,46 @@ import com.netflix.edda.basic.BasicBeanMapper
 import com.netflix.edda.Utils
 import com.netflix.edda.ObserverExecutionContext
 import org.joda.time.DateTime
-import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.ec2.model.DescribeAddressesRequest
-import com.amazonaws.services.ec2.model.DescribeImagesRequest
-import com.amazonaws.services.ec2.model.DescribeInstancesRequest
-import com.amazonaws.services.ec2.model.DescribeNetworkInterfacesRequest
-import com.amazonaws.services.ec2.model.DescribeReservedInstancesRequest
-import com.amazonaws.services.ec2.model.DescribeReservedInstancesOfferingsRequest
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
-import com.amazonaws.services.ec2.model.DescribeSnapshotsRequest
-import com.amazonaws.services.ec2.model.DescribeSubnetsRequest
-import com.amazonaws.services.ec2.model.DescribeTagsRequest
-import com.amazonaws.services.ec2.model.DescribeVolumesRequest
-import com.amazonaws.services.ec2.model.DescribeVpcsRequest
-import com.amazonaws.services.identitymanagement.model._
-import com.amazonaws.services.s3.model.ListBucketsRequest
-import com.amazonaws.services.sqs.model.ListQueuesRequest
-import com.amazonaws.services.sqs.model.GetQueueAttributesRequest
+import software.amazon.awssdk.core.exception.SdkServiceException
+import software.amazon.awssdk.services.ec2.model.DescribeAddressesRequest
+import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest
+import software.amazon.awssdk.services.ec2.model.DescribeInstancesRequest
+import software.amazon.awssdk.services.ec2.model.DescribeNetworkInterfacesRequest
+import software.amazon.awssdk.services.ec2.model.DescribeReservedInstancesRequest
+import software.amazon.awssdk.services.ec2.model.DescribeReservedInstancesOfferingsRequest
+import software.amazon.awssdk.services.ec2.model.DescribeSecurityGroupsRequest
+import software.amazon.awssdk.services.ec2.model.DescribeSnapshotsRequest
+import software.amazon.awssdk.services.ec2.model.DescribeSubnetsRequest
+import software.amazon.awssdk.services.ec2.model.DescribeTagsRequest
+import software.amazon.awssdk.services.ec2.model.DescribeVolumesRequest
+import software.amazon.awssdk.services.ec2.model.DescribeVpcsRequest
+import software.amazon.awssdk.services.iam.model._
+import software.amazon.awssdk.services.s3.model.ListBucketsRequest
+import software.amazon.awssdk.services.sqs.model.ListQueuesRequest
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest
 
-import com.amazonaws.services.cloudformation.model.DescribeStacksRequest
-import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest
+import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRequest
+import software.amazon.awssdk.services.cloudformation.model.ListStackResourcesRequest
 
-import com.amazonaws.services.cloudwatch.model.DescribeAlarmsRequest
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
-import com.amazonaws.services.autoscaling.model.DescribePoliciesRequest
-import com.amazonaws.services.autoscaling.model.DescribeScalingActivitiesRequest
-import com.amazonaws.services.autoscaling.model.DescribeScheduledActionsRequest
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
-import com.amazonaws.services.elasticloadbalancing.model.DescribeInstanceHealthRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeListenersRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.{DescribeLoadBalancersRequest => DescribeLoadBalancersV2Request}
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
-import com.amazonaws.services.route53.model.ListHostedZonesRequest
-import com.amazonaws.services.route53.model.ListResourceRecordSetsRequest
+import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeLaunchConfigurationsRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribePoliciesRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeScalingActivitiesRequest
+import software.amazon.awssdk.services.autoscaling.model.DescribeScheduledActionsRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
+import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeInstanceHealthRequest
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeListenersRequest
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.{DescribeLoadBalancersRequest => DescribeLoadBalancersV2Request}
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
+import software.amazon.awssdk.services.route53.model.ListHostedZonesRequest
+import software.amazon.awssdk.services.route53.model.ListResourceRecordSetsRequest
 
-import com.amazonaws.services.elasticache.model.DescribeCacheClustersRequest
+import software.amazon.awssdk.services.elasticache.model.DescribeCacheClustersRequest
 
-import com.amazonaws.services.rds.model.DescribeDBInstancesRequest
-import com.amazonaws.services.rds.model.DescribeDBSubnetGroupsRequest
-import com.amazonaws.services.rds.model.ListTagsForResourceRequest
+import software.amazon.awssdk.services.rds.model.DescribeDBInstancesRequest
+import software.amazon.awssdk.services.rds.model.DescribeDBSubnetGroupsRequest
+import software.amazon.awssdk.services.rds.model.ListTagsForResourceRequest
 
 import collection.JavaConverters._
 import java.util.concurrent.Executors
@@ -76,12 +76,12 @@ import java.util.concurrent.Callable
 
 import org.slf4j.LoggerFactory
 
-import com.amazonaws.services.rds.model.DescribeDBInstancesRequest
-import com.amazonaws.services.rds.model.ListTagsForResourceRequest
-import com.amazonaws.services.elasticache.model.DescribeCacheClustersRequest
-import com.amazonaws.services.cloudformation.model.DescribeStacksRequest
-import com.amazonaws.services.cloudformation.model.ListStackResourcesRequest
-import com.amazonaws.services.cloudformation.model.Stack
+import software.amazon.awssdk.services.rds.model.DescribeDBInstancesRequest
+import software.amazon.awssdk.services.rds.model.ListTagsForResourceRequest
+import software.amazon.awssdk.services.elasticache.model.DescribeCacheClustersRequest
+import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRequest
+import software.amazon.awssdk.services.cloudformation.model.ListStackResourcesRequest
+import software.amazon.awssdk.services.cloudformation.model.Stack
 
 /** static namespace for out Context trait */
 object AwsCrawler {
@@ -100,7 +100,7 @@ object AwsCrawler {
 /** specialized [[com.netflix.edda.BeanMapper]] trait that can suppress specific AWS resource tags
   * based on patterns expressed in the config.  This is necessary in case people add tags to
   * resources that change frequenly (like timestamps).  The AwsBeanMapper trait also works around
-  * some internal state exposed in the bean for [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/ec2/model/InstanceState.html com.amazonaws.services.ec2.model.InstanceState]]
+  * some internal state exposed in the bean for [[http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/ec2/model/InstanceState.html software.amazon.awssdk.services.ec2.model.InstanceState]]
   * *code* field.
   */
 trait AwsBeanMapper extends BeanMapper {
@@ -108,10 +108,10 @@ trait AwsBeanMapper extends BeanMapper {
   val suppressSet = Utils.getProperty("edda.crawler", "aws.suppressTags", "", "").get.split(",").toSet
 
   val suppressKeyMapper: PartialFunction[(AnyRef, String, Option[Any]), Option[Any]] = {
-    case (obj: com.amazonaws.services.ec2.model.Tag, "value", Some(x: Any)) if suppressSet.contains(obj.getKey) => Some("[EDDA_SUPPRESSED]")
-    case (obj: com.amazonaws.services.ec2.model.TagDescription, "value", Some(x: Any)) if suppressSet.contains(obj.getKey) => Some("[EDDA_SUPPRESSED]")
-    case (obj: com.amazonaws.services.autoscaling.model.Tag, "value", Some(x: Any)) if suppressSet.contains(obj.getKey) => Some("[EDDA_SUPPRESSED]")
-    case (obj: com.amazonaws.services.autoscaling.model.TagDescription, "value", Some(x: Any)) if suppressSet.contains(obj.getKey) => Some("[EDDA_SUPPRESSED]")
+    case (obj: software.amazon.awssdk.services.ec2.model.Tag, "value", Some(x: Any)) if suppressSet.contains(obj.key()) => Some("[EDDA_SUPPRESSED]")
+    case (obj: software.amazon.awssdk.services.ec2.model.TagDescription, "value", Some(x: Any)) if suppressSet.contains(obj.key()) => Some("[EDDA_SUPPRESSED]")
+    case (obj: software.amazon.awssdk.services.autoscaling.model.Tag, "value", Some(x: Any)) if suppressSet.contains(obj.key()) => Some("[EDDA_SUPPRESSED]")
+    case (obj: software.amazon.awssdk.services.autoscaling.model.TagDescription, "value", Some(x: Any)) if suppressSet.contains(obj.key()) => Some("[EDDA_SUPPRESSED]")
   }
   basicBeanMapper.addKeyMapper(suppressKeyMapper)
 
@@ -119,23 +119,23 @@ trait AwsBeanMapper extends BeanMapper {
 
   // this will flatten the tags so that we will have: { key -> a, value -> b, a -> b }
   val tagObjMapper: PartialFunction[AnyRef,AnyRef] = {
-    case obj : com.amazonaws.services.ec2.model.Tag =>
+    case obj : software.amazon.awssdk.services.ec2.model.Tag =>
       flattenTag(basicBeanMapper.fromBean(obj).asInstanceOf[Map[String,Any]])
-    case obj : com.amazonaws.services.ec2.model.TagDescription =>
+    case obj : software.amazon.awssdk.services.ec2.model.TagDescription =>
       flattenTag(basicBeanMapper.fromBean(obj).asInstanceOf[Map[String,Any]])
-    case obj : com.amazonaws.services.autoscaling.model.Tag =>
+    case obj : software.amazon.awssdk.services.autoscaling.model.Tag =>
       flattenTag(basicBeanMapper.fromBean(obj).asInstanceOf[Map[String,Any]])
-    case obj : com.amazonaws.services.autoscaling.model.TagDescription =>
+    case obj : software.amazon.awssdk.services.autoscaling.model.TagDescription =>
       flattenTag(basicBeanMapper.fromBean(obj).asInstanceOf[Map[String,Any]])
-    case obj : com.amazonaws.services.elasticloadbalancing.model.Tag =>
+    case obj : software.amazon.awssdk.services.elasticloadbalancing.model.Tag =>
       flattenTag(basicBeanMapper.fromBean(obj).asInstanceOf[Map[String,Any]])
-    case obj : com.amazonaws.services.rds.model.Tag =>
+    case obj : software.amazon.awssdk.services.rds.model.Tag =>
       flattenTag(basicBeanMapper.fromBean(obj).asInstanceOf[Map[String,Any]])
   }
   this.addObjMapper(tagObjMapper)
 
   val instanceStateKeyMapper: PartialFunction[(AnyRef, String, Option[Any]), Option[Any]] = {
-    case (obj: com.amazonaws.services.ec2.model.InstanceState, "code", Some(value: Int)) => Some(0x00FF & value)
+    case (obj: software.amazon.awssdk.services.ec2.model.InstanceState, "code", Some(value: Int)) => Some(0x00FF & value)
   }
   this.addKeyMapper(instanceStateKeyMapper)
 
@@ -158,11 +158,11 @@ abstract class AwsIterator extends Iterator[Seq[Record]] {
   * @param ctx context to provide beanMapper
   */
 class AwsAddressCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new DescribeAddressesRequest
+  val request = DescribeAddressesRequest.builder().build()
 
   override def doCrawl()(implicit req: RequestId) =
-    backoffRequest { ctx.awsClient.ec2.describeAddresses(request).getAddresses.asScala.map(
-      item => Record(item.getPublicIp, ctx.beanMapper(item))) }.toSeq
+    backoffRequest { ctx.awsClient.ec2.describeAddresses(request).addresses.asScala.map(
+      item => Record(item.publicIp(), ctx.beanMapper(item))) }.toSeq
 }
 
 /** crawler for AutoScalingGroups
@@ -172,20 +172,21 @@ class AwsAddressCrawler(val name: String, val ctx: AwsCrawler.Context) extends C
   */
 class AwsAutoScalingGroupCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
   private[this] val logger = LoggerFactory.getLogger(getClass)
-  val request = new DescribeAutoScalingGroupsRequest
-  request.setMaxRecords(50)
+  val request = DescribeAutoScalingGroupsRequest.builder()
+    .maxRecords(50)
+    .build()
 
   lazy val abortWithoutTags = Utils.getProperty("edda.crawler", "abortWithoutTags", name, "false")
   override def doCrawl()(implicit req: RequestId) = {
     var tagCount = 0
     val it = new AwsIterator() {
       def next() = {
-        val response = backoffRequest { ctx.awsClient.asg.describeAutoScalingGroups(request.withNextToken(this.nextToken.get)) }
-        this.nextToken = Option(response.getNextToken)
-        response.getAutoScalingGroups.asScala.map(
+        val response = backoffRequest { ctx.awsClient.asg.describeAutoScalingGroups(request.toBuilder().nextToken(this.nextToken.get).build()) }
+        this.nextToken = Option(response.nextToken())
+        response.autoScalingGroups().asScala.map(
           item => {
-            tagCount += item.getTags.size
-            Record(item.getAutoScalingGroupName, new DateTime(item.getCreatedTime), ctx.beanMapper(item))
+            tagCount += item.tags().size
+            Record(item.autoScalingGroupName(), new DateTime(item.createdTime()), ctx.beanMapper(item))
           }).toList
       }
     }
@@ -206,17 +207,18 @@ class AwsAutoScalingGroupCrawler(val name: String, val ctx: AwsCrawler.Context) 
   */
 class AwsScalingPolicyCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
   private[this] val logger = LoggerFactory.getLogger(getClass)
-  val request = new DescribePoliciesRequest
-  request.setMaxRecords(50)
+  val request = DescribePoliciesRequest.builder()
+    .maxRecords(50)
+    .build()
 
   override def doCrawl()(implicit req: RequestId) = {
     val it = new AwsIterator() {
       def next() = {
-        val response = backoffRequest { ctx.awsClient.asg.describePolicies(request.withNextToken(this.nextToken.get)) }
-        this.nextToken = Option(response.getNextToken)
-        response.getScalingPolicies.asScala.map(
+        val response = backoffRequest { ctx.awsClient.asg.describePolicies(request.toBuilder().nextToken(this.nextToken.get).build()) }
+        this.nextToken = Option(response.nextToken())
+        response.scalingPolicies().asScala.map(
           item => {
-            Record(item.getPolicyName, ctx.beanMapper(item))
+            Record(item.policyName(), ctx.beanMapper(item))
           }).toList
       }
     }
@@ -231,17 +233,18 @@ class AwsScalingPolicyCrawler(val name: String, val ctx: AwsCrawler.Context) ext
   */
 class AwsScalingActivitiesCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
   private[this] val logger = LoggerFactory.getLogger(getClass)
-  val request = new DescribeScalingActivitiesRequest
-  request.setMaxRecords(50)
+  val request = DescribeScalingActivitiesRequest.builder()
+    .maxRecords(50)
+    .build()
 
   override def doCrawl()(implicit req: RequestId) = {
     val it = new AwsIterator() {
       def next() = {
-        val response = backoffRequest { ctx.awsClient.asg.describeScalingActivities(request.withNextToken(this.nextToken.get)) }
-        this.nextToken = Option(response.getNextToken)
-        response.getActivities.asScala.map(
+        val response = backoffRequest { ctx.awsClient.asg.describeScalingActivities(request.toBuilder().nextToken(this.nextToken.get).build()) }
+        this.nextToken = Option(response.nextToken())
+        response.activities().asScala.map(
           item => {
-            Record(item.getActivityId, ctx.beanMapper(item))
+            Record(item.activityId(), ctx.beanMapper(item))
           }).toList
       }
     }
@@ -256,17 +259,18 @@ class AwsScalingActivitiesCrawler(val name: String, val ctx: AwsCrawler.Context)
   */
 class AwsScheduledActionsCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
   private[this] val logger = LoggerFactory.getLogger(getClass)
-  val request = new DescribeScheduledActionsRequest
-  request.setMaxRecords(50)
+  val request = DescribeScheduledActionsRequest.builder()
+    .maxRecords(50)
+    .build()
 
   override def doCrawl()(implicit req: RequestId) = {
     val it = new AwsIterator() {
       def next() = {
-        val response = backoffRequest { ctx.awsClient.asg.describeScheduledActions(request.withNextToken(this.nextToken.get)) }
-        this.nextToken = Option(response.getNextToken)
-        response.getScheduledUpdateGroupActions.asScala.map(
+        val response = backoffRequest { ctx.awsClient.asg.describeScheduledActions(request.toBuilder().nextToken(this.nextToken.get).build()) }
+        this.nextToken = Option(response.nextToken())
+        response.scheduledUpdateGroupActions().asScala.map(
           item => {
-            Record(item.getScheduledActionARN, ctx.beanMapper(item))
+            Record(item.scheduledActionARN(), ctx.beanMapper(item))
           }).toList
       }
     }
@@ -281,13 +285,13 @@ class AwsScheduledActionsCrawler(val name: String, val ctx: AwsCrawler.Context) 
   */
 class AwsVpcCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
   private[this] val logger = LoggerFactory.getLogger(getClass)
-  val request = new DescribeVpcsRequest
+  val request = DescribeVpcsRequest.builder().build()
 
   override def doCrawl()(implicit req: RequestId) = {
     val response = backoffRequest { ctx.awsClient.ec2.describeVpcs() }
-    response.getVpcs.asScala.map(
+    response.vpcs().asScala.map(
       item => {
-        Record(item.getVpcId, ctx.beanMapper(item))
+        Record(item.vpcId(), ctx.beanMapper(item))
       }).toList
   }
 }
@@ -300,17 +304,18 @@ class AwsVpcCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawl
   */
 class AwsAlarmCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
   private[this] val logger = LoggerFactory.getLogger(getClass)
-  val request = new DescribeAlarmsRequest
-  request.setMaxRecords(100)
+  val request = DescribeAlarmsRequest.builder()
+    .maxRecords(100)
+    .build()
 
   override def doCrawl()(implicit req: RequestId) = {
     val it = new AwsIterator() {
       def next() = {
-        val response = backoffRequest { ctx.awsClient.cw.describeAlarms(request.withNextToken(this.nextToken.get)) }
-        this.nextToken = Option(response.getNextToken)
-        response.getMetricAlarms.asScala.map(
+        val response = backoffRequest { ctx.awsClient.cw.describeAlarms(request.toBuilder().nextToken(this.nextToken.get).build()) }
+        this.nextToken = Option(response.nextToken())
+        response.metricAlarms().asScala.map(
           item => {
-            Record(item.getAlarmName, ctx.beanMapper(item))
+            Record(item.alarmName(), ctx.beanMapper(item))
           }).toList
       }
     }
@@ -327,15 +332,15 @@ class AwsAlarmCrawler(val name: String, val ctx: AwsCrawler.Context) extends Cra
   * @param ctx context to provide beanMapper
   */
 class AwsImageCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new DescribeImagesRequest
+  val request = DescribeImagesRequest.builder().build()
   lazy val abortWithoutTags = Utils.getProperty("edda.crawler", "abortWithoutTags", name, "false")
 
   override def doCrawl()(implicit req: RequestId) = {
     var tagCount = 0
-    val list = backoffRequest { ctx.awsClient.ec2.describeImages(request).getImages }.asScala.map(
+    val list = backoffRequest { ctx.awsClient.ec2.describeImages(request).images() }.asScala.map(
       item => {
-        tagCount += item.getTags.size
-        Record(item.getImageId, ctx.beanMapper(item))
+        tagCount += item.tags().size
+        Record(item.imageId(), ctx.beanMapper(item))
       }).toSeq
     if (tagCount == 0 && abortWithoutTags.get.toBoolean) {
       throw new java.lang.RuntimeException("no tags found for " + name + ", ignoring crawl results")
@@ -351,17 +356,18 @@ class AwsImageCrawler(val name: String, val ctx: AwsCrawler.Context) extends Cra
   */
 class AwsLoadBalancerCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
   private[this] val logger = LoggerFactory.getLogger(getClass)
-  val request = new DescribeLoadBalancersRequest
-  request.setPageSize(400)
+  val request = DescribeLoadBalancersRequest.builder()
+    .pageSize(400)
+    .build()
 
   override def doCrawl()(implicit req: RequestId) = {
     val it = new AwsIterator() {
       def next() = {
-        val response = backoffRequest { ctx.awsClient.elb.describeLoadBalancers(request.withMarker(this.nextToken.get)) }
-        this.nextToken = Option(response.getNextMarker)
-        response.getLoadBalancerDescriptions.asScala.map(
+        val response = backoffRequest { ctx.awsClient.elb.describeLoadBalancers(request.toBuilder().marker(this.nextToken.get).build()) }
+        this.nextToken = Option(response.nextMarker())
+        response.loadBalancerDescriptions().asScala.map(
           item => {
-            Record(item.getLoadBalancerName, new DateTime(item.getCreatedTime), ctx.beanMapper(item))
+            Record(item.loadBalancerName(), new DateTime(item.createdTime()), ctx.beanMapper(item))
           }).toList
       }
     }
@@ -380,9 +386,9 @@ class AwsLoadBalancerCrawler(val name: String, val ctx: AwsCrawler.Context) exte
         names += data("loadBalancerName")
       }
       try {
-        val request = new com.amazonaws.services.elasticloadbalancing.model.DescribeTagsRequest().withLoadBalancerNames(names.asJava)
+        val request = software.amazon.awssdk.services.elasticloadbalancing.model.DescribeTagsRequest.builder().loadBalancerNames(names.asJava).build()
         val response = backoffRequest { ctx.awsClient.elb.describeTags(request) }
-        val responseList = backoffRequest { response.getTagDescriptions().asScala.map(
+        val responseList = backoffRequest { response.tagDescriptions().asScala.map(
           item => {
             ctx.beanMapper(item)
           }).toSeq
@@ -413,24 +419,24 @@ class AwsLoadBalancerCrawler(val name: String, val ctx: AwsCrawler.Context) exte
   */
 class AwsLoadBalancerV2Crawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
   private[this] val logger = LoggerFactory.getLogger(getClass)
-  val request = new DescribeLoadBalancersV2Request
+  val request = DescribeLoadBalancersV2Request.builder().build()
 
   override def doCrawl()(implicit req: RequestId) = {
     val it = new AwsIterator {
       override def next() = {
         val response = backoffRequest {
-          ctx.awsClient.elbv2.describeLoadBalancers(request.withMarker(this.nextToken.get))
+          ctx.awsClient.elbv2.describeLoadBalancers(request.toBuilder().marker(this.nextToken.get).build())
         }
-        this.nextToken = Option(response.getNextMarker)
-        response.getLoadBalancers.asScala.map(
+        this.nextToken = Option(response.nextMarker)
+        response.loadBalancers.asScala.map(
           item => {
-            val lr = new DescribeListenersRequest().withLoadBalancerArn(item.getLoadBalancerArn)
-            val listeners = backoffRequest { ctx.awsClient.elbv2.describeListeners(lr) }.getListeners
+            val lr = DescribeListenersRequest.builder().loadBalancerArn(item.loadBalancerArn).build()
+            val listeners = backoffRequest { ctx.awsClient.elbv2.describeListeners(lr) }.listeners
             // If there are no listeners AWS returns null instead of an empty list
             val listenersList = if (listeners == null) Nil else listeners.asScala.map(item => ctx.beanMapper(item)).toList
             val data = ctx.beanMapper(item).asInstanceOf[Map[String, Any]] ++ Map("listeners" -> listenersList)
 
-            Record(item.getLoadBalancerName, new DateTime(item.getCreatedTime), data)
+            Record(item.loadBalancerName, new DateTime(item.createdTime), data)
           }
         ).toList
       }
@@ -446,17 +452,17 @@ class AwsLoadBalancerV2Crawler(val name: String, val ctx: AwsCrawler.Context) ex
   */
 class AwsTargetGroupCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
   private[this] val logger = LoggerFactory.getLogger(getClass)
-  val request = new DescribeTargetGroupsRequest
+  val request = DescribeTargetGroupsRequest.builder().build()
 
   override def doCrawl()(implicit req: RequestId) = {
     val it = new AwsIterator {
       override def next() = {
         val response = backoffRequest {
-          ctx.awsClient.elbv2.describeTargetGroups(request.withMarker(this.nextToken.get))
+          ctx.awsClient.elbv2.describeTargetGroups(request.toBuilder().marker(this.nextToken.get).build())
         }
-        this.nextToken = Option(response.getNextMarker)
-        response.getTargetGroups.asScala.map(
-          item => Record(item.getTargetGroupName, ctx.beanMapper(item))
+        this.nextToken = Option(response.nextMarker)
+        response.targetGroups.asScala.map(
+          item => Record(item.targetGroupName, ctx.beanMapper(item))
         ).toList
       }
     }
@@ -508,7 +514,7 @@ class AwsInstanceHealthCrawler(val name: String, val ctx: AwsCrawler.Context, va
           new Callable[Record] {
             def call() = {
               try {
-                val instances = backoffRequest { ctx.awsClient.elb.describeInstanceHealth(new DescribeInstanceHealthRequest(elb.id)).getInstanceStates }
+                val instances = backoffRequest { ctx.awsClient.elb.describeInstanceHealth(DescribeInstanceHealthRequest.builder().loadBalancerName(elb.id).build).instanceStates }
                 elb.copy(data = Map("name" -> elb.id, "instances" -> instances.asScala.map(ctx.beanMapper(_))))
               } catch {
                 case e: Exception => {
@@ -587,16 +593,15 @@ class AwsInstanceHealthCrawler(val name: String, val ctx: AwsCrawler.Context, va
   * @param ctx context to provide beanMapper
   */
 class AwsLaunchConfigurationCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new DescribeLaunchConfigurationsRequest
-  request.setMaxRecords(50)
+  val request = DescribeLaunchConfigurationsRequest.builder().maxRecords(50).build()
 
   override def doCrawl()(implicit req: RequestId) = {
     val it = new AwsIterator() {
       def next() = {
-        val response = backoffRequest { ctx.awsClient.asg.describeLaunchConfigurations(request.withNextToken(this.nextToken.get)) }
-        this.nextToken = Option(response.getNextToken)
-        response.getLaunchConfigurations.asScala.map(
-          item => Record(item.getLaunchConfigurationName, new DateTime(item.getCreatedTime), ctx.beanMapper(item))).toList
+        val response = backoffRequest { ctx.awsClient.asg.describeLaunchConfigurations(request.toBuilder().nextToken(this.nextToken.get).build()) }
+        this.nextToken = Option(response.nextToken)
+        response.launchConfigurations.asScala.map(
+          item => Record(item.launchConfigurationName, new DateTime(item.createdTime), ctx.beanMapper(item))).toList
       }
     }
     it.toList.flatten
@@ -609,12 +614,12 @@ class AwsLaunchConfigurationCrawler(val name: String, val ctx: AwsCrawler.Contex
   * @param ctx context to provide beanMapper
   */
 class AwsNetworkInterfaceCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new DescribeNetworkInterfacesRequest
+  val request = DescribeNetworkInterfacesRequest.builder().build()
 
   override def doCrawl()(implicit req: RequestId) = {
-    val list = backoffRequest { ctx.awsClient.ec2.describeNetworkInterfaces(request).getNetworkInterfaces }.asScala.map(
+    val list = backoffRequest { ctx.awsClient.ec2.describeNetworkInterfaces(request).networkInterfaces }.asScala.map(
       item => {
-        Record(item.getNetworkInterfaceId, ctx.beanMapper(item))
+        Record(item.networkInterfaceId, ctx.beanMapper(item))
       }
     )
     list
@@ -627,15 +632,15 @@ class AwsNetworkInterfaceCrawler(val name: String, val ctx: AwsCrawler.Context) 
   * @param ctx context to provide beanMapper
   */
 class AwsReservationCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new DescribeInstancesRequest
+  val request = DescribeInstancesRequest.builder().build()
 
   lazy val abortWithoutTags = Utils.getProperty("edda.crawler", "abortWithoutTags", name, "false")
   override def doCrawl()(implicit req: RequestId) = {
     var tagCount = 0
-    val list = backoffRequest { ctx.awsClient.ec2.describeInstances(request).getReservations }.asScala.map(
+    val list = backoffRequest { ctx.awsClient.ec2.describeInstances(request).reservations }.asScala.map(
       item => {
-        tagCount += item.getInstances.asScala.map(_.getTags.size).sum
-        Record(item.getReservationId, ctx.beanMapper(item))
+        tagCount += item.instances.asScala.map(_.tags.size).sum
+        Record(item.reservationId, ctx.beanMapper(item))
       }).toSeq
     if (tagCount == 0 && abortWithoutTags.get.toBoolean) {
       throw new java.lang.RuntimeException("no tags found for " + name + ", ignoring crawl results")
@@ -719,15 +724,15 @@ class AwsInstanceCrawler(val name: String, val ctx: AwsCrawler.Context, val craw
   * @param ctx context to provide beanMapper
   */
 class AwsSecurityGroupCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new DescribeSecurityGroupsRequest
+  val request = DescribeSecurityGroupsRequest.builder().build()
   lazy val abortWithoutTags = Utils.getProperty("edda.crawler", "abortWithoutTags", name, "false")
 
   override def doCrawl()(implicit req: RequestId) = {
     var tagCount = 0
-    val list = backoffRequest { ctx.awsClient.ec2.describeSecurityGroups(request).getSecurityGroups }.asScala.map(
+    val list = backoffRequest { ctx.awsClient.ec2.describeSecurityGroups(request).securityGroups }.asScala.map(
       item => {
-        tagCount += item.getTags.size
-        Record(item.getGroupId, ctx.beanMapper(item))
+        tagCount += item.tags.size
+        Record(item.groupId, ctx.beanMapper(item))
       }).toSeq
     if (tagCount == 0 && abortWithoutTags.get.toBoolean) {
       throw new java.lang.RuntimeException("no tags found for " + name + ", ignoring crawl results")
@@ -742,15 +747,15 @@ class AwsSecurityGroupCrawler(val name: String, val ctx: AwsCrawler.Context) ext
   * @param ctx context to provide beanMapper
   */
 class AwsSnapshotCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new DescribeSnapshotsRequest
+  val request = DescribeSnapshotsRequest.builder().build()
   lazy val abortWithoutTags = Utils.getProperty("edda.crawler", "abortWithoutTags", name, "false")
 
   override def doCrawl()(implicit req: RequestId) = {
     var tagCount = 0
-    val list = backoffRequest { ctx.awsClient.ec2.describeSnapshots(request).getSnapshots }.asScala.map(
+    val list = backoffRequest { ctx.awsClient.ec2.describeSnapshots(request).snapshots }.asScala.map(
       item => {
-        tagCount += item.getTags.size
-        Record(item.getSnapshotId, new DateTime(item.getStartTime), ctx.beanMapper(item))
+        tagCount += item.tags.size
+        Record(item.snapshotId, new DateTime(item.startTime), ctx.beanMapper(item))
       }).toSeq
     if (tagCount == 0 && abortWithoutTags.get.toBoolean) {
       throw new java.lang.RuntimeException("no tags found for " + name + ", ignoring crawl results")
@@ -765,10 +770,10 @@ class AwsSnapshotCrawler(val name: String, val ctx: AwsCrawler.Context) extends 
   * @param ctx context to provide beanMapper
   */
 class AwsTagCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new DescribeTagsRequest
+  val request = DescribeTagsRequest.builder().build()
 
-  override def doCrawl()(implicit req: RequestId) = backoffRequest { ctx.awsClient.ec2.describeTags(request).getTags }.asScala.map(
-    item => Record(item.getKey + "|" + item.getResourceType + "|" + item.getResourceId, ctx.beanMapper(item))).toSeq
+  override def doCrawl()(implicit req: RequestId) = backoffRequest { ctx.awsClient.ec2.describeTags(request).tags }.asScala.map(
+    item => Record(item.key() + "|" + item.resourceType + "|" + item.resourceId, ctx.beanMapper(item))).toSeq
 }
 
 /** crawler for Volumes
@@ -777,15 +782,15 @@ class AwsTagCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawl
   * @param ctx context to provide beanMapper
   */
 class AwsVolumeCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new DescribeVolumesRequest
+  val request = DescribeVolumesRequest.builder().build()
   lazy val abortWithoutTags = Utils.getProperty("edda.crawler", "abortWithoutTags", name, "false")
 
   override def doCrawl()(implicit req: RequestId) = {
     var tagCount = 0
-    val list = backoffRequest { ctx.awsClient.ec2.describeVolumes(request).getVolumes }.asScala.map(
+    val list = backoffRequest { ctx.awsClient.ec2.describeVolumes(request).volumes }.asScala.map(
       item => {
-        tagCount += item.getTags.size
-        Record(item.getVolumeId, new DateTime(item.getCreateTime), ctx.beanMapper(item))
+        tagCount += item.tags.size
+        Record(item.volumeId, new DateTime(item.createTime), ctx.beanMapper(item))
       }).toSeq
     if (tagCount == 0 && abortWithoutTags.get.toBoolean) {
       throw new java.lang.RuntimeException("no tags found for " + name + ", ignoring crawl results")
@@ -800,10 +805,10 @@ class AwsVolumeCrawler(val name: String, val ctx: AwsCrawler.Context) extends Cr
   * @param ctx context to provide beanMapper
   */
 class AwsBucketCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new ListBucketsRequest
+  val request = ListBucketsRequest.builder().build()
 
-  override def doCrawl()(implicit req: RequestId) = backoffRequest { ctx.awsClient.s3.listBuckets(request) }.asScala.map(
-    item => Record(item.getName, new DateTime(item.getCreationDate), ctx.beanMapper(item))).toSeq
+  override def doCrawl()(implicit req: RequestId) = backoffRequest { ctx.awsClient.s3.listBuckets(request).buckets }.asScala.map(
+    item => Record(item.name, new DateTime(item.creationDate), ctx.beanMapper(item))).toSeq
 }
 
 /** crawler for IAM Users
@@ -812,24 +817,24 @@ class AwsBucketCrawler(val name: String, val ctx: AwsCrawler.Context) extends Cr
   * @param ctx context to provide beanMapper and configuration
   */
 class AwsIamUserCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new ListUsersRequest
+  val request = ListUsersRequest.builder().build()
   private[this] val logger = LoggerFactory.getLogger(getClass)
   private[this] val threadPool = Executors.newFixedThreadPool(10)
 
   override def doCrawl()(implicit req: RequestId) = {
-    val users = backoffRequest { ctx.awsClient.identitymanagement.listUsers(request).getUsers.asScala }
+    val users = backoffRequest { ctx.awsClient.identitymanagement.listUsers(request).users.asScala }
     val futures: Seq[java.util.concurrent.Future[Record]] = users.map(
       user => {
         threadPool.submit(
           new Callable[Record] {
             def call() = {
-              val groupsRequest = new ListGroupsForUserRequest().withUserName(user.getUserName)
-              val groups = backoffRequest { ctx.awsClient.identitymanagement.listGroupsForUser(groupsRequest).getGroups }.asScala.map( item => item.getGroupName ).toSeq
-              val accessKeysRequest = new ListAccessKeysRequest().withUserName(user.getUserName)
-              val accessKeys = Map[String, String]() ++ backoffRequest { ctx.awsClient.identitymanagement.listAccessKeys(accessKeysRequest).getAccessKeyMetadata }.asScala.map(item => ctx.beanMapper(item)).toSeq
-              val userPoliciesRequest = new ListUserPoliciesRequest().withUserName(user.getUserName)
-              val userPolicies = backoffRequest { ctx.awsClient.identitymanagement.listUserPolicies(userPoliciesRequest).getPolicyNames.asScala }
-              Record(user.getUserName, new DateTime(user.getCreateDate), Map("name" -> user.getUserName, "attributes" -> (ctx.beanMapper(user)), "groups" -> groups, "accessKeys" -> accessKeys, "userPolicies" -> userPolicies))
+              val groupsRequest = ListGroupsForUserRequest.builder().userName(user.userName).build()
+              val groups = backoffRequest { ctx.awsClient.identitymanagement.listGroupsForUser(groupsRequest).groups }.asScala.map( item => item.groupName ).toSeq
+              val accessKeysRequest = ListAccessKeysRequest.builder().userName(user.userName).build()
+              val accessKeys = Map[String, String]() ++ backoffRequest { ctx.awsClient.identitymanagement.listAccessKeys(accessKeysRequest).accessKeyMetadata }.asScala.map(item => ctx.beanMapper(item)).toSeq
+              val userPoliciesRequest = ListUserPoliciesRequest.builder().userName(user.userName).build()
+              val userPolicies = backoffRequest { ctx.awsClient.identitymanagement.listUserPolicies(userPoliciesRequest).policyNames.asScala }
+              Record(user.userName, new DateTime(user.createDate), Map("name" -> user.userName, "attributes" -> (ctx.beanMapper(user)), "groups" -> groups, "accessKeys" -> accessKeys, "userPolicies" -> userPolicies))
             }
           }
         )
@@ -865,20 +870,20 @@ class AwsIamUserCrawler(val name: String, val ctx: AwsCrawler.Context) extends C
   * @param ctx context to provide beanMapper and configuration
   */
 class AwsIamGroupCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new ListGroupsRequest
+  val request = ListGroupsRequest.builder().build()
   private[this] val logger = LoggerFactory.getLogger(getClass)
   private[this] val threadPool = Executors.newFixedThreadPool(10)
 
   override def doCrawl()(implicit req: RequestId) = {
-    val groups = backoffRequest { ctx.awsClient.identitymanagement.listGroups(request).getGroups.asScala }
+    val groups = backoffRequest { ctx.awsClient.identitymanagement.listGroups(request).groups.asScala }
     val futures: Seq[java.util.concurrent.Future[Record]] = groups.map(
       group => {
         threadPool.submit(
           new Callable[Record] {
             def call() = {
-              val groupPoliciesRequest = new ListGroupPoliciesRequest().withGroupName(group.getGroupName)
-              val groupPolicies = backoffRequest { ctx.awsClient.identitymanagement.listGroupPolicies(groupPoliciesRequest).getPolicyNames.asScala.toSeq }
-              Record(group.getGroupName, new DateTime(group.getCreateDate), Map("name" -> group.getGroupName, "attributes" -> (ctx.beanMapper(group)), "policies" -> groupPolicies))
+              val groupPoliciesRequest = ListGroupPoliciesRequest.builder().groupName(group.groupName).build()
+              val groupPolicies = backoffRequest { ctx.awsClient.identitymanagement.listGroupPolicies(groupPoliciesRequest).policyNames.asScala.toSeq }
+              Record(group.groupName, new DateTime(group.createDate), Map("name" -> group.groupName, "attributes" -> (ctx.beanMapper(group)), "policies" -> groupPolicies))
             }
           }
         )
@@ -914,10 +919,10 @@ class AwsIamGroupCrawler(val name: String, val ctx: AwsCrawler.Context) extends 
   * @param ctx context to provide beanMapper and configuration
   */
 class AwsIamRoleCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new ListRolesRequest
+  val request = ListRolesRequest.builder().build()
 
-  override def doCrawl()(implicit req: RequestId) = backoffRequest { ctx.awsClient.identitymanagement.listRoles(request).getRoles }.asScala.map(
-    item => Record(item.getRoleName, new DateTime(item.getCreateDate), ctx.beanMapper(item))).toSeq
+  override def doCrawl()(implicit req: RequestId) = backoffRequest { ctx.awsClient.identitymanagement.listRoles(request).roles }.asScala.map(
+    item => Record(item.roleName, new DateTime(item.createDate), ctx.beanMapper(item))).toSeq
 }
 
 /** crawler for IAM policies
@@ -926,19 +931,20 @@ class AwsIamRoleCrawler(val name: String, val ctx: AwsCrawler.Context) extends C
   * @param ctx context to provide beanMapper and configuration
   */
 class AwsIamPolicyCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new ListPoliciesRequest
-  val vr = new GetPolicyVersionRequest
+  val request = ListPoliciesRequest.builder().build()
 
   override def doCrawl()(implicit req: RequestId) = {
-    ctx.awsClient.identitymanagement.listPolicies(request).getPolicies.asScala.map(
+    ctx.awsClient.identitymanagement.listPolicies(request).policies.asScala.map(
       item => {
-        vr.setPolicyArn(item.getArn)
-        vr.setVersionId(item.getDefaultVersionId)
-        val version = ctx.awsClient.identitymanagement.getPolicyVersion(vr).getPolicyVersion
+        val vr = GetPolicyVersionRequest.builder()
+          .policyArn(item.arn)
+          .versionId(item.defaultVersionId)
+          .build()
+        val version = ctx.awsClient.identitymanagement.getPolicyVersion(vr).policyVersion
 
-        val data = ctx.beanMapper(item).asInstanceOf[Map[String, Any]] ++ Map("defaultDocument" -> version.getDocument)
+        val data = ctx.beanMapper(item).asInstanceOf[Map[String, Any]] ++ Map("defaultDocument" -> version.document)
 
-        Record(item.getPolicyName, new DateTime(item.getUpdateDate), data)
+        Record(item.policyName, new DateTime(item.updateDate), data)
       }).toSeq
   }
 }
@@ -948,10 +954,10 @@ class AwsIamPolicyCrawler(val name: String, val ctx: AwsCrawler.Context) extends
   *
   */
 class AwsIamPolicyVersionCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new ListPolicyVersionsRequest
+  val request = ListPolicyVersionsRequest.builder().build()
 
-  override def doCrawl()(implicit req: RequestId) = ctx.awsClient.identitymanagement.listPolicyVersions(request).getVersions.asScala.map(
-    item => Record(item.getVersionId, new DateTime(item.getCreateDate), ctx.beanMapper(item))).toSeq
+  override def doCrawl()(implicit req: RequestId) = ctx.awsClient.identitymanagement.listPolicyVersions(request).versions.asScala.map(
+    item => Record(item.versionId, new DateTime(item.createDate), ctx.beanMapper(item))).toSeq
 }
 
 /** crawler for IAM Virtual MFA Devices
@@ -960,10 +966,10 @@ class AwsIamPolicyVersionCrawler(val name: String, val ctx: AwsCrawler.Context) 
   * @param ctx context to provide beanMapper and configuration
   */
 class AwsIamVirtualMFADeviceCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new ListVirtualMFADevicesRequest
+  val request = ListVirtualMFADevicesRequest.builder().build()
 
-  override def doCrawl()(implicit req: RequestId) = backoffRequest { ctx.awsClient.identitymanagement.listVirtualMFADevices(request).getVirtualMFADevices }.asScala.map(
-    item => Record(item.getSerialNumber.split('/').last, new DateTime(item.getEnableDate), ctx.beanMapper(item))).toSeq
+  override def doCrawl()(implicit req: RequestId) = backoffRequest { ctx.awsClient.identitymanagement.listVirtualMFADevices(request).virtualMFADevices }.asScala.map(
+    item => Record(item.serialNumber.split('/').last, new DateTime(item.enableDate), ctx.beanMapper(item))).toSeq
 }
 
 /** crawler for SQS Queues
@@ -975,20 +981,20 @@ class AwsIamVirtualMFADeviceCrawler(val name: String, val ctx: AwsCrawler.Contex
   * @param ctx context to provide beanMapper
   */
 class AwsSimpleQueueCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new ListQueuesRequest
+  val request = ListQueuesRequest.builder().build()
   private[this] val logger = LoggerFactory.getLogger(getClass)
   private[this] val threadPool = Executors.newFixedThreadPool(10)
 
   override def doCrawl()(implicit req: RequestId) = {
-    val queues = backoffRequest { ctx.awsClient.sqs.listQueues(request).getQueueUrls.asScala }
+    val queues = backoffRequest { ctx.awsClient.sqs.listQueues(request).queueUrls.asScala }
     val futures: Seq[java.util.concurrent.Future[Record]] = queues.map(
       queueUrl => {
         threadPool.submit(
           new Callable[Record] {
             def call() = {
               val name = queueUrl.split('/').last
-              val attrRequest = new GetQueueAttributesRequest().withQueueUrl(queueUrl).withAttributeNames("All")
-              val attrs = Map[String, String]() ++ backoffRequest { ctx.awsClient.sqs.getQueueAttributes(attrRequest).getAttributes.asScala }
+              val attrRequest = GetQueueAttributesRequest.builder().queueUrl(queueUrl).attributeNames("All").build()
+              val attrs = Map[String, String]() ++ backoffRequest { ctx.awsClient.sqs.getQueueAttributes(attrRequest).attributes.asScala }
               val ctime = attrs.get("CreatedTimestamp") match {
                 case Some(time) => new DateTime(time.toInt * 1000)
                 case None => DateTime.now
@@ -1007,7 +1013,7 @@ class AwsSimpleQueueCrawler(val name: String, val ctx: AwsCrawler.Context) exten
         catch {
           case e: java.util.concurrent.ExecutionException => {
             e.getCause match {
-              case e: AmazonServiceException if e.getErrorCode == "AWS.SimpleQueueService.NonExistentQueue" => {
+              case e: SdkServiceException if e.errorCode == "AWS.SimpleQueueService.NonExistentQueue" => {
                 // this happens constantly, dont log it.  There is a large time delta between queues being deleted
                 // but still showing up in the ListQueuesResult
                 None
@@ -1043,10 +1049,10 @@ class AwsSimpleQueueCrawler(val name: String, val ctx: AwsCrawler.Context) exten
   * @param ctx context to provide beanMapper
   */
 class AwsReservedInstanceCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new DescribeReservedInstancesRequest
+  val request = DescribeReservedInstancesRequest.builder().build()
 
-  override def doCrawl()(implicit req: RequestId) = backoffRequest { ctx.awsClient.ec2.describeReservedInstances(request).getReservedInstances }.asScala.map(
-    item => Record(item.getReservedInstancesId, new DateTime(item.getStart), ctx.beanMapper(item))).toSeq
+  override def doCrawl()(implicit req: RequestId) = backoffRequest { ctx.awsClient.ec2.describeReservedInstances(request).reservedInstances }.asScala.map(
+    item => Record(item.reservedInstancesId, new DateTime(item.start), ctx.beanMapper(item))).toSeq
 }
 
 /** crawler for ReservedInstancesOfferings
@@ -1055,10 +1061,10 @@ class AwsReservedInstanceCrawler(val name: String, val ctx: AwsCrawler.Context) 
   * @param ctx context to provide beanMapper
   */
 class AwsReservedInstancesOfferingCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new DescribeReservedInstancesOfferingsRequest
+  val request = DescribeReservedInstancesOfferingsRequest.builder().build()
 
-  override def doCrawl()(implicit req: RequestId) = backoffRequest { ctx.awsClient.ec2.describeReservedInstancesOfferings(request).getReservedInstancesOfferings }.asScala.map(
-    item => Record(item.getReservedInstancesOfferingId, ctx.beanMapper(item))).toSeq
+  override def doCrawl()(implicit req: RequestId) = backoffRequest { ctx.awsClient.ec2.describeReservedInstancesOfferings(request).reservedInstancesOfferings }.asScala.map(
+    item => Record(item.reservedInstancesOfferingId, ctx.beanMapper(item))).toSeq
 }
 
 /** crawler for Route53 Hosted Zones (DNS records)
@@ -1067,10 +1073,10 @@ class AwsReservedInstancesOfferingCrawler(val name: String, val ctx: AwsCrawler.
   * @param ctx context to provide beanMapper
   */
 class AwsHostedZoneCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new ListHostedZonesRequest
+  val request = ListHostedZonesRequest.builder().build()
 
-  override def doCrawl()(implicit req: RequestId) =  backoffRequest { ctx.awsClient.route53.listHostedZones(request).getHostedZones }.asScala.map(
-      item => Record(item.getName, ctx.beanMapper(item))).toSeq
+  override def doCrawl()(implicit req: RequestId) =  backoffRequest { ctx.awsClient.route53.listHostedZones(request).hostedZones }.asScala.map(
+      item => Record(item.name, ctx.beanMapper(item))).toSeq
 }
 
 case class AwsHostedRecordCrawlerState(hostedZones: Seq[Record] = Seq[Record]())
@@ -1107,17 +1113,17 @@ class AwsHostedRecordCrawler(val name: String, val ctx: AwsCrawler.Context, val 
       zone => {
         val zoneId = zone.data.asInstanceOf[Map[String,Any]]("id").asInstanceOf[String]
         val zoneName = zone.id
-        val request = new ListResourceRecordSetsRequest(zoneId)
+        val request = ListResourceRecordSetsRequest.builder().hostedZoneId(zoneId).build()
         threadPool.submit(
           new Callable[Seq[Record]] {
             def call() = {
               val it = new AwsIterator() {
                 def next() = {
-                  val response = backoffRequest { ctx.awsClient.route53.listResourceRecordSets(request.withStartRecordName(this.nextToken.get)) }
-                  this.nextToken = Option(response.getNextRecordName)
-                  response.getResourceRecordSets.asScala.map(
+                  val response = backoffRequest { ctx.awsClient.route53.listResourceRecordSets(request.toBuilder().startRecordName(this.nextToken.get).build()) }
+                  this.nextToken = Option(response.nextRecordName)
+                  response.resourceRecordSets.asScala.map(
                     item => {
-                      Record(item.getName, ctx.beanMapper(item).asInstanceOf[Map[String,Any]] ++ Map("zone" -> Map("id" -> zoneId, "name" -> zoneName)))
+                      Record(item.name, ctx.beanMapper(item).asInstanceOf[Map[String,Any]] ++ Map("zone" -> Map("id" -> zoneId, "name" -> zoneName)))
                     }
                   ).toList
                 }
@@ -1189,18 +1195,19 @@ class AwsHostedRecordCrawler(val name: String, val ctx: AwsCrawler.Context, val 
   */
 class AwsDatabaseCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
   private[this] val logger = LoggerFactory.getLogger(getClass)
-  val request = new DescribeDBInstancesRequest
-  request.setMaxRecords(50)
+  val request = DescribeDBInstancesRequest.builder()
+    .maxRecords(50)
+    .build()
 
   override def doCrawl()(implicit req: RequestId) = {
     val it = new AwsIterator() {
       def next() = {
         // annoying, describeDBInstances has withMarker and getMarker instead if withToken and getNextToken
-        val response = backoffRequest { ctx.awsClient.rds.describeDBInstances(request.withMarker(this.nextToken.get)) }
-        this.nextToken = Option(response.getMarker)
-        response.getDBInstances.asScala.map(
+        val response = backoffRequest { ctx.awsClient.rds.describeDBInstances(request.toBuilder().marker(this.nextToken.get).build()) }
+        this.nextToken = Option(response.marker)
+        response.dbInstances.asScala.map(
           item => {
-            Record(item.getDBInstanceIdentifier, ctx.beanMapper(item))
+            Record(item.dbInstanceIdentifier, ctx.beanMapper(item))
           }).toList
       }
     }
@@ -1213,9 +1220,9 @@ class AwsDatabaseCrawler(val name: String, val ctx: AwsCrawler.Context) extends 
         val data = rec.toMap("data").asInstanceOf[Map[String,String]]
         val arn = ctx.awsClient.arn("rds", "db", data("DBInstanceIdentifier"))
 
-        val request = new ListTagsForResourceRequest().withResourceName(arn)
+        val request = ListTagsForResourceRequest.builder().resourceName(arn).build()
         val response = backoffRequest { ctx.awsClient.rds.listTagsForResource(request) }
-        val responseList = response.getTagList.asScala.map(
+        val responseList = response.tagList.asScala.map(
           item => {
             ctx.beanMapper(item)
           }).toList
@@ -1233,9 +1240,9 @@ class AwsDatabaseCrawler(val name: String, val ctx: AwsCrawler.Context) extends 
   */
 class AwsDatabaseSubnetCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
   override def doCrawl()(implicit req: RequestId) =
-    ctx.awsClient.rds.describeDBSubnetGroups().getDBSubnetGroups.asScala.map(
+    ctx.awsClient.rds.describeDBSubnetGroups().dbSubnetGroups.asScala.map(
       item => {
-        Record(item.getDBSubnetGroupName, ctx.beanMapper(item))
+        Record(item.dbSubnetGroupName, ctx.beanMapper(item))
       })
 }
 
@@ -1245,10 +1252,10 @@ class AwsDatabaseSubnetCrawler(val name: String, val ctx: AwsCrawler.Context) ex
   * @param ctx context to provide beanMapper
   */
 class AwsCacheClusterCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new DescribeCacheClustersRequest
+  val request = DescribeCacheClustersRequest.builder().build()
 
-  override def doCrawl()(implicit req: RequestId) = backoffRequest { ctx.awsClient.elasticache.describeCacheClusters(request).getCacheClusters }.asScala.map(
-    item => Record(item.getCacheClusterId, ctx.beanMapper(item))).toSeq
+  override def doCrawl()(implicit req: RequestId) = backoffRequest { ctx.awsClient.elasticache.describeCacheClusters(request).cacheClusters }.asScala.map(
+    item => Record(item.cacheClusterId, ctx.beanMapper(item))).toSeq
 }
 
 /** crawler for Subnets
@@ -1257,15 +1264,15 @@ class AwsCacheClusterCrawler(val name: String, val ctx: AwsCrawler.Context) exte
   * @param ctx context to provide beanMapper
   */
 class AwsSubnetCrawler(val name: String, val ctx: AwsCrawler.Context) extends Crawler {
-  val request = new DescribeSubnetsRequest
+  val request = DescribeSubnetsRequest.builder().build()
   lazy val abortWithoutTags = Utils.getProperty("edda.crawler", "abortWithoutTags", name, "false")
 
   override def doCrawl()(implicit req: RequestId) = {
     var tagCount = 0
-    val list = backoffRequest { ctx.awsClient.ec2.describeSubnets(request).getSubnets }.asScala.map(
+    val list = backoffRequest { ctx.awsClient.ec2.describeSubnets(request).subnets }.asScala.map(
       item => {
-        tagCount += item.getTags.size
-        Record(item.getSubnetId, ctx.beanMapper(item))
+        tagCount += item.tags.size
+        Record(item.subnetId, ctx.beanMapper(item))
       }).toSeq
     if (tagCount == 0 && abortWithoutTags.get.toBoolean) {
       throw new java.lang.RuntimeException("no tags found for " + name + ", ignoring crawl results")
@@ -1285,14 +1292,14 @@ class AwsCloudformationCrawler(val name: String, val ctx: AwsCrawler.Context) ex
 
   private def getStacksFromAws: List[Stack] = {
     val stacks = List.newBuilder[Stack]
-    val request = new DescribeStacksRequest
+    val request = DescribeStacksRequest.builder().build()
     var token: String = null
     do {
       val response = backoffRequest {
-        ctx.awsClient.cloudformation.describeStacks(request.withNextToken(token))
+        ctx.awsClient.cloudformation.describeStacks(request.toBuilder().nextToken(token).build())
       }
-      stacks ++= response.getStacks.asScala
-      token = response.getNextToken
+      stacks ++= response.stacks.asScala
+      token = response.nextToken
     } while (token != null)
     stacks.result
   }
@@ -1304,9 +1311,9 @@ class AwsCloudformationCrawler(val name: String, val ctx: AwsCrawler.Context) ex
         this.threadPool.submit(
           new Callable[Record] {
             def call() = {
-              val stackResourcesRequest = new ListStackResourcesRequest().withStackName(stack.getStackName)
-              val stackResources = backoffRequest { ctx.awsClient.cloudformation.listStackResources(stackResourcesRequest).getStackResourceSummaries.asScala.map(item => ctx.beanMapper(item)) }
-              Record(stack.getStackName, new DateTime(stack.getCreationTime), ctx.beanMapper(stack).asInstanceOf[Map[String,Any]] ++ Map("resources" -> stackResources))
+              val stackResourcesRequest = ListStackResourcesRequest.builder().stackName(stack.stackName).build()
+              val stackResources = backoffRequest { ctx.awsClient.cloudformation.listStackResources(stackResourcesRequest).stackResourceSummaries.asScala.map(item => ctx.beanMapper(item)) }
+              Record(stack.stackName, new DateTime(stack.creationTime), ctx.beanMapper(stack).asInstanceOf[Map[String,Any]] ++ Map("resources" -> stackResources))
             }
           }
         )

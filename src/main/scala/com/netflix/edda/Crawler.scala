@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit
 import com.netflix.servo.monitor.Monitors
 import com.netflix.servo.DefaultMonitorRegistry
 
-import com.amazonaws.AmazonClientException
+import software.amazon.awssdk.core.exception.SdkClientException
 
 import org.slf4j.LoggerFactory
 
@@ -185,7 +185,7 @@ abstract class Crawler extends Observable {
         }
         code
       } catch {
-        case e: AmazonClientException => {
+        case e: SdkClientException => {
           val pattern = ".*Error Code: ([A-Za-z]+);.*".r
           val pattern(err_code) = e.getMessage()
           if ( (err_code == "RequestLimitExceeded") || (err_code == "Throttling") ) {
@@ -197,7 +197,7 @@ abstract class Crawler extends Observable {
             }
             backoffRequest { code }
           } else {
-            logger.error("Unexpected AmazonClientException, aborting")
+            logger.error("Unexpected SdkClientException, aborting")
             throw e
           }
         }
