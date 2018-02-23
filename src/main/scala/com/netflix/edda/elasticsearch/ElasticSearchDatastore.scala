@@ -24,6 +24,8 @@ import com.netflix.edda.RequestId
 
 import org.joda.time.DateTime
 import java.util.Date
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 
 import org.slf4j.LoggerFactory
 
@@ -51,9 +53,7 @@ import scala.language.postfixOps
 // /** helper object to store common ElasticSearch related routines */
 object ElasticSearchDatastore {
 
-  import org.joda.time.format.ISODateTimeFormat
-  val basicDateTime = ISODateTimeFormat.dateTime
-  val basicDateTimeNoMillis = ISODateTimeFormat.dateTimeNoMillis
+  val basicDateTime = DateTimeFormatter.ISO_INSTANT
 
   /** converts a ElasticSearch source object to a Record */
   def esToRecord(obj: Any): Record = {
@@ -62,26 +62,26 @@ object ElasticSearchDatastore {
         Record(
           Option(o.get("id")).getOrElse(o.get("_id")).asInstanceOf[String],
           Option(o.get("ftime")) match {
-            case Some(date:String) => basicDateTime.parseDateTime(date)
+            case Some(date:String) => Instant.from(basicDateTime.parse(date))
             case _ => Option(o.get("ctime")) match {
-              case Some(date:String) => basicDateTime.parseDateTime(date)
+              case Some(date:String) => Instant.from(basicDateTime.parse(date))
               case _ => null
             }
           },
           Option(o.get("ctime")) match {
-            case Some(date:String) => basicDateTime.parseDateTime(date)
+            case Some(date:String) => Instant.from(basicDateTime.parse(date))
             case _ => null
           },
           Option(o.get("stime")) match {
-            case Some(date:String) => basicDateTime.parseDateTime(date)
+            case Some(date:String) => Instant.from(basicDateTime.parse(date))
             case _ => null
           },
           Option(o.get("ltime")) match {
-            case Some(date: String) => basicDateTime.parseDateTime(date)
+            case Some(date: String) => Instant.from(basicDateTime.parse(date))
             case _ => null
           },
           Option(o.get("mtime")) match {
-            case Some(date: String) => basicDateTime.parseDateTime(date)
+            case Some(date: String) => Instant.from(basicDateTime.parse(date))
             case _ => null
           },
           Option(o.get("data")) match {
@@ -130,9 +130,9 @@ object ElasticSearchDatastore {
       case o: java.util.Collection[_] => {
         List.empty[Any] ++ o.asScala.map(esToScala(_))
       }
-      case dateTimeNoMillisRx() => basicDateTimeNoMillis.parseDateTime(obj.asInstanceOf[String])
-      case dateTimeRx() => basicDateTime.parseDateTime(obj.asInstanceOf[String])
-      case o: Date => new DateTime(o)
+      case dateTimeNoMillisRx() => Instant.from(basicDateTime.parse(obj.asInstanceOf[String]))
+      case dateTimeRx() => Instant.from(basicDateTime.parse(obj.asInstanceOf[String]))
+      //case o: Instant => Instant.ofEpochMilli(o)
       case o: AnyRef => o
       case null => null
       case other => throw new java.lang.RuntimeException("esToScala: don't know how to handle: " + other)
@@ -512,13 +512,13 @@ class ElasticSearchDatastore(val name: String) extends Datastore {
     d
   }
 
-  def collectionModified()(implicit req: RequestId): DateTime  = {
+  def collectionModified()(implicit req: RequestId): Instant  = {
     // if query is for "null" ltime, then use the .live index alias
     val t0 = System.nanoTime()
     try {
       val response = client.prepareGet(monitorIndexName, "collection_mark", name).execute().actionGet()
       if( response == null || !response.isExists )
-        DateTime.now
+        Instant.now
       else {
         esToRecord(response.getSource).mtime
       }
@@ -530,7 +530,7 @@ class ElasticSearchDatastore(val name: String) extends Datastore {
   }
 
   def markCollectionModified()(implicit req: RequestId) = {
-    val markRec = Record(name, Map("updated" -> DateTime.now, "id" -> name, "type" -> "collection"))
+    val markRec = Record(name, Map("updated" -> Instant.now, "id" -> name, "type" -> "collection"))
     val t0 = System.nanoTime()
     try {
       client.prepareIndex(monitorIndexName, "collection_mark").
@@ -586,7 +586,7 @@ class ElasticSearchDatastore(val name: String) extends Datastore {
         recs.foreach( rec => {
           bulk.add(
             client.prepareIndex(writeAliasName, docType).
-              setId(rec.id + "|" + rec.stime.getMillis).
+              setId(rec.id + "|" + rec.stime.toEpochMilli).
               setRouting(rec.id).
               setSource(esToJson(rec)).
               setConsistencyLevel(writeConsistency).
@@ -669,7 +669,7 @@ class ElasticSearchDatastore(val name: String) extends Datastore {
         val bulk = client.prepareBulk
         recs.foreach( rec => {
           bulk.add(
-            client.prepareDelete(writeAliasName, docType, rec.id + "|" + rec.stime.getMillis).setRouting(rec.id)
+            client.prepareDelete(writeAliasName, docType, rec.id + "|" + rec.stime.toEpochMilli).setRouting(rec.id)
           )
         })
         val response = bulk.execute.actionGet

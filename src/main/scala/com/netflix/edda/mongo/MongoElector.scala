@@ -21,7 +21,7 @@ import com.netflix.edda.RequestId
 
 import org.slf4j.LoggerFactory
 
-import org.joda.time.DateTime
+import java.time.Instant
 
 import com.mongodb.DBCollection
 
@@ -65,7 +65,7 @@ class MongoElector extends Elector {
     * @return
     */
   protected override def runElection()(implicit req: RequestId): Boolean = {
-    val now = DateTime.now
+    val now = Instant.now
     var leader = instance
 
     var isLeader = false
@@ -102,7 +102,7 @@ class MongoElector extends Elector {
         // maybe we were too slow and someone took leader from us
         isLeader = if (result == null) false else true
       } else {
-        val timeout = DateTime.now().plusMillis(-1 * (pollCycle.get.toInt + leaderTimeout.get.toInt))
+        val timeout = Instant.now().plusMillis(-1 * (pollCycle.get.toInt + leaderTimeout.get.toInt))
         if (mtime.isBefore(timeout)) {
           // assumer leader is dead, so try to become leader
           val result = mongo.findAndModify(
@@ -126,7 +126,7 @@ class MongoElector extends Elector {
           } else {
             isLeader = true
             mongo.insert(
-              MongoDatastore.recordToMongo(r.copy(ltime = now), Some("leader|" + r.stime.getMillis)))
+              MongoDatastore.recordToMongo(r.copy(ltime = now), Some("leader|" + r.stime.toEpochMilli)))
           }
         } else isLeader = false
       }

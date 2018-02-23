@@ -15,7 +15,7 @@
  */
 package com.netflix.edda
 
-import org.joda.time.DateTime
+import java.time.Instant
 
 case class RecordSet(records: Seq[Record] = Seq(), meta: Map[String,Any] = Map())
 
@@ -23,7 +23,7 @@ case class RecordSet(records: Seq[Record] = Seq(), meta: Map[String,Any] = Map()
 object Record {
   /** create record with new id and data */
   def apply(id: String, data: Any): Record = {
-    val now = DateTime.now
+    val now = Instant.now
     new Record(
       id = id,
       ftime = now,
@@ -36,8 +36,8 @@ object Record {
   }
 
   /** create record with new id, create-time and data */
-  def apply(id: String, ctime: DateTime, data: Any): Record = {
-    val now = DateTime.now
+  def apply(id: String, ctime: Instant, data: Any): Record = {
+    val now = Instant.now
     new Record(
       id = id,
       ftime = now,
@@ -52,11 +52,11 @@ object Record {
   /** allows Record to be constructed like a case class */
   def apply(
              id: String,
-             ftime: DateTime,
-             ctime: DateTime,
-             stime: DateTime,
-             ltime: DateTime,
-             mtime: DateTime,
+             ftime: Instant,
+             ctime: Instant,
+             stime: Instant,
+             ltime: Instant,
+             mtime: Instant,
              data: Any,
              tags: Map[String, Any]) = new Record(id, ftime, ctime, stime, ltime, mtime, data, tags)
 }
@@ -73,22 +73,22 @@ object Record {
   */
 class Record(
               val id: String,
-              val ftime: DateTime,
-              val ctime: DateTime,
-              val stime: DateTime,
-              val ltime: DateTime,
-              val mtime: DateTime,
+              val ftime: Instant,
+              val ctime: Instant,
+              val stime: Instant,
+              val ltime: Instant,
+              val mtime: Instant,
               val data: Any,
               val tags: Map[String, Any]) {
 
   /** copy to behave similar to case class */
   def copy(
             id: String = id,
-            ftime: DateTime = ftime,
-            ctime: DateTime = ctime,
-            stime: DateTime = stime,
-            ltime: DateTime = ltime,
-            mtime: DateTime = mtime,
+            ftime: Instant = ftime,
+            ctime: Instant = ctime,
+            stime: Instant = stime,
+            ltime: Instant = ltime,
+            mtime: Instant = mtime,
             data: Any = data,
             tags: Map[String, Any] = tags) = new Record(id, ftime, ctime, stime, ltime, mtime, data, tags)
 
@@ -106,7 +106,7 @@ class Record(
   }
 
   def toId(): String = {
-      return (this.id + "|" + this.stime.getMillis)
+      return (this.id + "|" + this.stime.toEpochMilli)
   }
 
   /** json serialized string used to compare if 2 records with same id are in-fact identical */

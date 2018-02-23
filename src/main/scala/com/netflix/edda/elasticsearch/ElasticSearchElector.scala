@@ -22,7 +22,7 @@ import com.netflix.edda.RequestId
 
 import org.slf4j.LoggerFactory
 
-import org.joda.time.DateTime
+import java.time.Instant
 
 import org.elasticsearch.common.settings.ImmutableSettings
 import org.elasticsearch.action.WriteConsistencyLevel
@@ -94,7 +94,7 @@ private[this] val logger = LoggerFactory.getLogger(getClass)
       return false
     }
 
-    val now = DateTime.now
+    val now = Instant.now
     var leader = instance
 
     var isLeader = false
@@ -160,7 +160,7 @@ private[this] val logger = LoggerFactory.getLogger(getClass)
           if (logger.isInfoEnabled) logger.info(s"$req$this index leader (update mtime) lapse: ${lapse}ms")
         }
       } else {
-        val timeout = DateTime.now().plusMillis(-1 * (pollCycle.get.toInt + leaderTimeout.get.toInt))
+        val timeout = Instant.now().plusMillis(-1 * (pollCycle.get.toInt + leaderTimeout.get.toInt))
         if (mtime.isBefore(timeout)) {
           // assume leader is dead, so try to become leader
           val t0 = System.nanoTime()
@@ -178,7 +178,7 @@ private[this] val logger = LoggerFactory.getLogger(getClass)
             leader = instance;
             // old leader is gone, so create historical record from old leader record
             client.prepareIndex(monitorIndexName, docType).
-              setId("leader|" + leaderRec.stime.getMillis).
+              setId("leader|" + leaderRec.stime.toEpochMilli).
               setSource(esToJson(leaderRec.copy(ltime=now))).
               setConsistencyLevel(writeConsistency).
               setReplicationType(replicationType).

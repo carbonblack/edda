@@ -38,6 +38,7 @@ import com.mongodb.Bytes
 import org.joda.time.DateTime
 import java.util.Date
 import java.util.Properties
+import java.time.Instant
 
 import org.slf4j.LoggerFactory
 
@@ -53,14 +54,14 @@ object MongoDatastore {
       case o: BasicDBObject =>
         Record(
           Option(o.get("id")).getOrElse(o.get("_id")).asInstanceOf[String],
-          new DateTime(Option(o.get("ftime")).getOrElse(o.get("ctime")).asInstanceOf[Date]),
-          new DateTime(o.get("ctime").asInstanceOf[Date]),
-          new DateTime(Option(o.get("stime")).getOrElse(o.get("ctime")).asInstanceOf[Date]),
+          Option(o.get("ftime")).getOrElse(o.get("ctime")).asInstanceOf[Date].toInstant(),
+          o.get("ctime").asInstanceOf[Date].toInstant(),
+          Option(o.get("stime")).getOrElse(o.get("ctime")).asInstanceOf[Date].toInstant(),
           Option(o.get("ltime")) match {
-            case Some(date: Date) => new DateTime(date)
+            case Some(date: Date) => java.time.Instant.ofEpochMilli(new DateTime(o).toInstant().getMillis)
             case _ => null
           },
-          new DateTime(o.get("mtime").asInstanceOf[Date]),
+          o.get("mtime").asInstanceOf[Date].toInstant(),
           mongoToScala(o.get("data")),
           mongoToScala(o.get("tags")).asInstanceOf[Map[String, Any]])
       case other => throw new java.lang.RuntimeException("cannot turn " + other + " into a Record")
@@ -77,7 +78,7 @@ object MongoDatastore {
       case o: BasicDBList => {
         List.empty[Any] ++ o.asScala.map(mongoToScala(_))
       }
-      case o: Date => new DateTime(o)
+      case o: Instant => o
       case o: String => mongoDecodeString(o)
       case o: AnyRef => o
       case null => null
@@ -99,7 +100,7 @@ object MongoDatastore {
     if (id.isDefined) {
       obj.put("_id", id.get)
     } else {
-      obj.put("_id", rec.id + "|" + rec.stime.getMillis)
+      obj.put("_id", rec.id + "|" + rec.stime.toEpochMilli)
     }
     obj
   }
@@ -124,7 +125,7 @@ object MongoDatastore {
         o.foreach(item => mongo.add(scalaToMongo(item)))
         mongo
       }
-      case o: DateTime => o.toDate
+      case o: Instant => Date.from(o)
       case o: AnyRef => o
       case null => null
       case other => throw new java.lang.RuntimeException("scalaToMongo: don't know how to handle: " + other)
@@ -299,14 +300,14 @@ class MongoDatastore(val name: String) extends Datastore {
     d
   }
 
-  def collectionModified()(implicit req: RequestId): DateTime  = {
+  def collectionModified()(implicit req: RequestId): Instant  = {
       val rec = monitor.findOne(mapToMongo(Map("_id" -> name)));
-      if( rec == null ) DateTime.now() else mongoToRecord(rec).mtime
+      if( rec == null ) Instant.now() else mongoToRecord(rec).mtime
   }
 
   def markCollectionModified()(implicit req: RequestId) = {
     try {
-      val now = DateTime.now()
+      val now = Instant.now()
       monitor.findAndModify(
         mapToMongo(Map("_id" -> name)),
         null, // fields

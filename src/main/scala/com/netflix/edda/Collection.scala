@@ -23,7 +23,7 @@ import scala.util.Random
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.Callable
-import org.joda.time.DateTime
+import java.time.Instant
 import org.slf4j.LoggerFactory
 
 import com.netflix.servo.monitor.Monitors
@@ -219,24 +219,24 @@ abstract class Collection(val ctx: Collection.Context) extends Queryable {
       def call() = if(elector.isLeader()(RequestId("crawl.deletedRecordCount.gauge"))) deletedRecordCount.get else 0
     })
 
-  private[this] var lastCurrentUpdate = DateTime.now
+  private[this] var lastCurrentUpdate = Instant.now
   private[this] val currentUpdateGauge = new BasicGauge[java.lang.Long](
     MonitorConfig.builder("lastCurrentUpdate").build(),
     new Callable[java.lang.Long] {
       def call() = {
         if (currentDataStore.isDefined && elector.isLeader()(RequestId("lastCurrentUpdateGauge"))) {
-          DateTime.now.getMillis - lastCurrentUpdate.getMillis
+          Instant.now.minusMillis(lastCurrentUpdate.toEpochMilli).toEpochMilli
         } else 0
       }
     })
 
-  private[this] var lastHistoryUpdate = DateTime.now
+  private[this] var lastHistoryUpdate = Instant.now
   private[this] val historyUpdateGauge = new BasicGauge[java.lang.Long](
     MonitorConfig.builder("lastHistoryUpdate").build(),
     new Callable[java.lang.Long] {
       def call() = {
         if (dataStore.isDefined && elector.isLeader()(RequestId("lastHistoryUpdateGauge"))) {
-          DateTime.now.getMillis - lastHistoryUpdate.getMillis
+           Instant.now.minusMillis(lastHistoryUpdate.toEpochMilli).toEpochMilli
         } else 0
       }
     })
@@ -246,8 +246,8 @@ abstract class Collection(val ctx: Collection.Context) extends Queryable {
   if(false) historyUpdateGauge
 
 
-  var lastMtimeUpdated: DateTime = new DateTime(0);
-  var lastMtime: DateTime = new DateTime(0);
+  var lastMtimeUpdated = Instant.ofEpochMilli(0);
+  var lastMtime = Instant.ofEpochMilli(0);
 
   /** query datastore or in memory collection. */
   protected def doQuery(queryMap: Map[String, Any], limit: Int, live: Boolean, keys: Set[String], replicaOk: Boolean, state: StateMachine.State)(implicit req: RequestId): Seq[Record] = {
@@ -267,7 +267,7 @@ abstract class Collection(val ctx: Collection.Context) extends Queryable {
         firstOf(limit, localState(state).recordSet.records.filter(record => ctx.recordMatcher.doesMatch(queryMap, record.toMap)))
       }
       localState(state).recordSet.meta.get("mtime") match {
-        case Some(date: DateTime) => {
+        case Some(date: Instant) => {
           recs.map(_.copy(mtime=date))
         }
         case _ => recs
@@ -282,7 +282,7 @@ abstract class Collection(val ctx: Collection.Context) extends Queryable {
   /** load collection from Datastore (if available) */
   protected def load(replicaOk: Boolean)(implicit req: RequestId): RecordSet = {
     if (currentDataStore.isDefined) {
-      val now = DateTime.now
+      val now = Instant.now
       val recordSet = try {
         currentDataStore.get.load(replicaOk)
       }
@@ -295,7 +295,7 @@ abstract class Collection(val ctx: Collection.Context) extends Queryable {
       }
       lastLoad = recordSet.records match {
           case Nil => now
-          case _: Seq[_] => recordSet.records.maxBy( _.mtime.getMillis ).mtime
+          case _: Seq[_] => recordSet.records.maxBy( _.mtime.toEpochMilli ).mtime
       }
       loadRecordCount.set(recordSet.records.size)
       recordSet
@@ -312,14 +312,14 @@ abstract class Collection(val ctx: Collection.Context) extends Queryable {
     deletedRecordCount.set(d.removed.size)
     val d1 = if (currentDataStore.isDefined) {
       val delta = currentDataStore.get.update(d)
-      lastCurrentUpdate = DateTime.now
+      lastCurrentUpdate = Instant.now
       delta
     } else d
     val d2 = if(dataStore.isDefined && ((currentDataStore.isDefined && currentDataStore.get != dataStore.get) || currentDataStore.isEmpty)) { 
       // merge the meta data for the datastore updates
       try {
         val newDelta = dataStore.get.update(d)
-        lastHistoryUpdate = DateTime.now
+        lastHistoryUpdate = Instant.now
         d1.copy(recordSet = d1.recordSet.copy(meta = newDelta.recordSet.meta ++ d1.recordSet.meta))
       } catch {
         case e: Exception => {
@@ -344,7 +344,7 @@ abstract class Collection(val ctx: Collection.Context) extends Queryable {
     * @param oldRecords records from previous Delta result
     */
   protected[edda] def delta(newRecordSet: RecordSet, oldRecordSet: RecordSet)(implicit req: RequestId): Delta = {
-    val now = DateTime.now
+    val now = Instant.now
     val newRecords = newRecordSet.records.map( rec => rec.copy(mtime = now) )
     
     // remove needs to be a list to allow for duplicate records (multiple record revisions
@@ -478,8 +478,8 @@ abstract class Collection(val ctx: Collection.Context) extends Queryable {
    */
   protected[edda] def allowCrawl = true
 
-  private[this] var lastLoad: DateTime = new DateTime(0)
-  private[edda] var lastPurge: DateTime = DateTime.now()
+  private[this] var lastLoad = Instant.ofEpochMilli(0)
+  private[edda] var lastPurge = Instant.now()
 
   /** load records from Datastore and update monitoring metrics */
   private[edda] def doLoad(replicaOk: Boolean)(implicit req: RequestId): RecordSet = {
@@ -508,7 +508,7 @@ abstract class Collection(val ctx: Collection.Context) extends Queryable {
       flushMessages {
         case Purge(from) => true
       }
-      lastPurge = DateTime.now
+      lastPurge = Instant.now
       // NamedActor(this + " Purge processor") {
       import PurgeExecutionContext._
       scala.concurrent.future {
@@ -530,7 +530,7 @@ abstract class Collection(val ctx: Collection.Context) extends Queryable {
               val options = purgePolicyOptions.asInstanceOf[Map[String,String]]
               if( options.contains("expiry") ) {
                 val expiry = options("expiry").toLong
-                dataStore.get.remove(Map("ltime" -> Map("$lt" -> new DateTime( DateTime.now.getMillis - expiry ))))
+                dataStore.get.remove(Map("ltime" -> Map("$lt" -> Instant.now().minusMillis(expiry))))
               }
               else {
                 if (logger.isErrorEnabled) logger.error(s"$req$this AGE PurgePolicy requires expiry option to be specified, such as AGE;expiry=2678400000")

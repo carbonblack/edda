@@ -71,51 +71,56 @@ class BasicBeanMapperTest extends FunSuite {
       .minSize(2)
       .tags(tags)
       .build()
-    val expected = Map(
-      "terminationPolicies" -> List(),
-      "healthCheckGracePeriod" -> 600,
-      "tags" -> List(
+    val expected = 
+
+
+Map(
+    "terminationPolicies" -> null,
+    "healthCheckGracePeriod" -> 600,
+     "tags" -> List(
+         Map(
+            "resourceId" -> null,
+            "resourceType" -> null, 
+            "key" -> "tagName", 
+            "class" -> "software.amazon.awssdk.services.autoscaling.model.TagDescription", 
+            "propagateAtLaunch" -> null, 
+            "value" -> "tagValue"
+            )
+        ),
+    "healthCheckType" -> "EC2",
+    "autoScalingGroupARN" -> "ARN",
+    "placementGroup" -> null,
+    "instances" -> List(
         Map(
-          "resourceId" -> null,
-          "resourceType" -> null,
-          "key" -> "tagName",
-          "class" -> "software.amazon.awssdk.services.autoscaling.model.TagDescription",
-          "propagateAtLaunch" -> null,
-          "value" -> "tagValue"
-        )
-      ),
-      "healthCheckType" -> "EC2",
-      "autoScalingGroupARN" -> "ARN",
-      "placementGroup" -> null,
-      "instances" -> List(
-        Map(
-          "instanceId" -> "i-0123456789",
-          "healthStatus" -> "Healthy",
-          "availabilityZone" -> "us-east-1c",
-          "launchTemplate" -> null,
-          "protectedFromScaleIn" -> null,
-          "lifecycleState" -> "InService",
-          "class" -> "software.amazon.awssdk.services.autoscaling.model.Instance",
-          "launchConfigurationName" -> "launchConfigName"
-        )
-      ),
-      "launchTemplate" -> null,
-      "VPCZoneIdentifier" -> "",
-      "defaultCooldown" -> 10,
-      "loadBalancerNames" -> List("elbName"),
-      "createdTime" -> new DateTime(0),
-      "suspendedProcesses" -> List(),
-      "status" -> null,
-      "desiredCapacity" -> 2,
-      "class" -> "software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup",
-      "enabledMetrics" -> List(),
-      "newInstancesProtectedFromScaleIn" -> null,
-      "maxSize" -> 2,
-      "availabilityZones" -> List("us-east-1c"),
-      "autoScalingGroupName" -> "asgName",
-      "minSize" -> 2,
-      "launchConfigurationName" -> "launchConfigName",
-      "targetGroupARNs" -> List()
+            "instanceId" -> "i-0123456789",
+            "healthStatus" -> "Healthy",
+            "availabilityZone" -> "us-east-1c",
+            "protectedFromScaleIn" -> null,
+            "lifecycleState" -> Map(
+                "class" -> "software.amazon.awssdk.services.autoscaling.model.LifecycleState",
+                "name" -> "IN_SERVICE"
+            ), 
+            "class" -> "software.amazon.awssdk.services.autoscaling.model.Instance",
+            "lifecycleStateString" -> "InService",
+            "launchConfigurationName" -> "launchConfigName"
+            )
+        ),
+    "vpcZoneIdentifier" -> "",
+    "defaultCooldown" -> 10,
+    "loadBalancerNames" -> List("elbName"), 
+    "createdTime" -> Instant.ofEpochMilli(0),
+    "suspendedProcesses" -> null,
+    "status" -> null,
+    "desiredCapacity" -> 2,
+    "class" -> "software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup",
+    "enabledMetrics" -> null,
+    "newInstancesProtectedFromScaleIn" -> null,
+    "maxSize" -> 2,
+    "targetGroupARNs" -> null,
+    "availabilityZones" -> List("us-east-1c"),
+    "autoScalingGroupName" -> "asgName",
+    "minSize" -> 2,
+    "launchConfigurationName" -> "launchConfigName"
     )
 
     expectResult(expected) {

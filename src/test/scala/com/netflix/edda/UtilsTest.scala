@@ -18,6 +18,7 @@ package com.netflix.edda
 import java.util.Properties
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone.UTC
+import java.time.Instant
 
 import com.netflix.config.DynamicPropertyFactory
 import com.netflix.config.ConcurrentCompositeConfiguration
@@ -61,7 +62,7 @@ class UtilsTest extends FunSuite {
   }
 
   test("toPrettyJson") {
-    val date = new DateTime(0, UTC)
+    val date = Instant.ofEpochMilli(0)
     val expected = """{
   "date" : "1970-01-01T00:00:00.000Z",
   "foo" : "bar",
@@ -78,7 +79,7 @@ class UtilsTest extends FunSuite {
   }
 
   test("writeJson") {
-    val date = new DateTime(0, UTC)
+    val date = Instant.ofEpochMilli(0)
     val expected = """{"date":0,"foo":"bar","list":[1,2,3,4]}"""
     expectResult(expected) {
       Utils.toJson(Map("foo" -> "bar", "list" -> List(1, 2, 3, 4), "date" -> date))
@@ -92,8 +93,8 @@ class UtilsTest extends FunSuite {
   }
 
   test("diffRecords") {
-    val r1 = Record("id", 1).copy(stime = new DateTime(0, UTC))
-    val r2 = Record("id", 2).copy(stime = new DateTime(1, UTC))
+    val r1 = Record("id", 1).copy(stime = Instant.ofEpochMilli(0))
+    val r2 = Record("id", 2).copy(stime = Instant.ofEpochMilli(1))
     var expected =
 """--- collection/path/id;_pp;_at=0
 +++ collection/path/id;_pp;_at=1
@@ -105,9 +106,9 @@ class UtilsTest extends FunSuite {
       Utils.diffRecords(Seq(r2, r1), None, "collection/path")
     }
 
-    val r3 = Record("id", List("this", "is", "a", "test")).copy(stime = new DateTime(0, UTC))
-    val r4 = Record("id", List("this", "is", "a", "great", "test")).copy(stime = new DateTime(1, UTC))
-    val r5 = Record("id", List("this", "is", "an", "even", "better", "test")).copy(stime = new DateTime(2, UTC))
+    val r3 = Record("id", List("this", "is", "a", "test")).copy(stime = Instant.ofEpochMilli(0))
+    val r4 = Record("id", List("this", "is", "a", "great", "test")).copy(stime = Instant.ofEpochMilli(1))
+    val r5 = Record("id", List("this", "is", "an", "even", "better", "test")).copy(stime = Instant.ofEpochMilli(2))
 
     expected =
 """--- collection/path/id;_pp;_at=1

@@ -34,6 +34,8 @@ import com.netflix.config.DynamicPropertyFactory
 import com.netflix.config.DynamicStringProperty
 
 import org.joda.time.DateTime
+import java.time.Instant
+import java.time.format.DateTimeFormatterBuilder
 import org.slf4j.LoggerFactory
 
 import org.codehaus.jackson.JsonGenerator
@@ -289,6 +291,7 @@ object Utils {
       case v: Date => gen.writeNumber(v.getTime)
       case v: Record => writeJson(gen,v.toMap,fmt)
       case v: DateTime => gen.writeNumber(v.getMillis)
+      case v: Instant => gen.writeNumber(v.toEpochMilli)
       case v: Map[_, _] => {
         gen.writeStartObject()
         v.toSeq.sortBy(_._1.asInstanceOf[String]).foreach(pair => {
@@ -336,6 +339,10 @@ object Utils {
     arg match {
       case v: Date => dateFormat.format(v)
       case v: DateTime => v.toDateTime(org.joda.time.DateTimeZone.UTC).toString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+      case v: Instant => {
+         val formatter = new DateTimeFormatterBuilder().appendInstant(3).toFormatter()
+         formatter.format(v)
+      }
       case v => v
     }
   }
@@ -368,7 +375,7 @@ object Utils {
         gen.setPrettyPrinter(dpp)
         writeJson(gen, rec.data, dateFormatter)
         gen.close()
-        (prefix + "/" + rec.id + ";_pp;_at=" + rec.stime.getMillis, baos.toString)
+        (prefix + "/" + rec.id + ";_pp;_at=" + rec.stime.toEpochMilli, baos.toString)
       }
     }).sliding(2).foreach(v => {
       val (a, b) = (v.head, v.tail.head)

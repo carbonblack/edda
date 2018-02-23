@@ -16,13 +16,14 @@
 package com.netflix.edda
 
 import org.joda.time.DateTime
+import java.time.Instant
 
 import org.scalatest.FunSuite
 
 class RecordTest extends FunSuite {
   test("Apply") {
 
-    val date = new DateTime(1)
+    val date = Instant.ofEpochMilli(1)
     val ftime = date
     val ctime = date
     val stime = date
@@ -60,7 +61,7 @@ class RecordTest extends FunSuite {
   }
 
   test("toMap") {
-    val date = new DateTime(1)
+    val date = Instant.ofEpochMilli(1)
     val rec = Record("id", date, date, date, null, date, 1, Map())
     val map = Map("id" -> "id", "ftime" -> date, "ctime" -> date, "stime" -> date, "ltime" -> null, "mtime" -> date, "data" -> 1, "tags" -> Map())
     expectResult(map) {

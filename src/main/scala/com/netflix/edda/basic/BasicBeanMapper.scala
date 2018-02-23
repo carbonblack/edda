@@ -21,6 +21,7 @@ import com.netflix.edda.Utils
 import java.util.Date
 
 import org.joda.time.DateTime
+import java.time.Instant
 
 import org.slf4j.LoggerFactory
 
@@ -77,6 +78,7 @@ class BasicBeanMapper extends BeanMapper {
     case v: String => Some(v)
     case v: Date => Some(new DateTime(v))
     case v: DateTime => Some(v)
+    case v: Instant => Some(v)
     case v: Class[_] => Some(v.getName)
     case v: java.util.Collection[_] => Some(mkList(v))
     case v: java.util.Map[_, _] => Some(mkMap(v))
@@ -97,8 +99,39 @@ class BasicBeanMapper extends BeanMapper {
         item => {
           val entry = item.asInstanceOf[java.util.Map.Entry[String, Any]]
           val value = mkValue(entry.getValue)
+          logger.info(entry.getKey)
           entry.getKey -> keyMappers(obj, entry.getKey, value)
         }).collect({
+        case (name: String, Some(value)) =>
+          argPattern.replaceAllIn(name, "_").intern -> value
+      }).toMap
+    }
+  }
+
+    // This is terrible
+    private[this] var objMappersv2: PartialFunction[AnyRef, AnyRef] = {
+    case obj => {
+      val methods = obj.getClass.getMethods.sortBy(_.getName.toLowerCase)
+      methods.filter(
+        (m: java.lang.reflect.Method) => {
+          val a = Array(s"equal", s"builder", s"equals", s"getValueForField", s"hashCode", s"serializableBuilderClass", s"toBuilder", s"toString", s"wait", s"notify", s"notifyAll", s"copy")
+          var res = true
+          if (a contains m.getName) {
+             res = false
+          }
+          res
+        }
+      ).map(
+        item => {
+          logger.info(item.getName)
+          val value = mkValue(item.invoke(obj))
+          if (item.getName == s"getClass") {
+             s"class" -> keyMappers(obj, item.getName, value)
+          } else {
+             item.getName -> keyMappers(obj, item.getName, value)
+          }
+        }
+      ).collect({
         case (name: String, Some(value)) =>
           argPattern.replaceAllIn(name, "_").intern -> value
       }).toMap
@@ -113,11 +146,12 @@ class BasicBeanMapper extends BeanMapper {
     * was originally */
   def fromBean(obj: AnyRef): AnyRef = {
     if (obj.getClass.isEnum) {
+      logger.info(s"got enum")
       Map(
         "class" -> obj.getClass.getName,
         "name" -> obj.getClass.getMethod("name").invoke(obj).asInstanceOf[String])
     } else {
-      objMappers(obj)
+      objMappersv2(obj)
     }
   }
 

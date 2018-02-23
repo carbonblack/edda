@@ -41,9 +41,9 @@ import java.util.Scanner
 import org.apache.commons.io.IOUtils
 import org.apache.commons.codec.binary.Base64
 
-import org.joda.time.DateTime
+import java.time.Instant
 
-case class State(location: String, mtime: DateTime)
+case class State(location: String, mtime: Instant)
 
 class S3CurrentDatastore(val name: String) extends Datastore {
 
@@ -59,8 +59,8 @@ class S3CurrentDatastore(val name: String) extends Datastore {
     }
   }
 
-  lazy val s3Client = new AwsClient(account).s3
   lazy val s3 = {
+    val s3Client = new AwsClient(account).s3
     val request = GetBucketLocationRequest.builder().bucket(bucketName).build()
     val region = s3Client.getBucketLocation(request).locationConstraintString()
     val client = new AwsClient(account, region).s3
@@ -122,13 +122,13 @@ class S3CurrentDatastore(val name: String) extends Datastore {
     // read from S3
     val t0 = System.nanoTime()
     var md5: String = null
-    var mtime: DateTime = DateTime.now
+    var mtime = Instant.now
     var userMeta = Map[String,String]()
     val bytes = try {
       val request = GetObjectRequest.builder().bucket(bucketName).key(location).build()
       val response: ResponseBytes[GetObjectResponse] = s3.getObject(request,  StreamingResponseHandler.toBytes())
       val s3Object = response.response()
-      mtime = new DateTime(s3Object.lastModified())
+      mtime = s3Object.lastModified()
       
       userMeta = s3Object.metadata().asScala.toMap
       val origReqId = userMeta("reqid")
@@ -164,26 +164,26 @@ class S3CurrentDatastore(val name: String) extends Datastore {
       Record(
         node.get("id").getOrElse(node.get("_id")).asInstanceOf[String],
         node.get("ftime") match {
-          case Some(date: Long) => new DateTime(date)
+          case Some(date: Long) => Instant.ofEpochMilli(date)
           case _ => node.get("ctime") match {
-            case Some(date: Long) => new DateTime(date)
+            case Some(date: Long) => Instant.ofEpochMilli(date)
             case _ => null
           }
         },
         node.get("ctime") match {
-          case Some(date: Long) => new DateTime(date)
+          case Some(date: Long) => Instant.ofEpochMilli(date)
           case _ => null
         },
         node.get("stime") match {
-          case Some(date: Long) => new DateTime(date)
+          case Some(date: Long) => Instant.ofEpochMilli(date)
           case _ => null
         },
         node.get("ltime") match {
-          case Some(date: Long) => new DateTime(date)
+          case Some(date: Long) => Instant.ofEpochMilli(date)
           case _ => null
         },
         node.get("mtime") match {
-          case Some(date: Long) => new DateTime(date)
+          case Some(date: Long) => Instant.ofEpochMilli(date)
           case _ => null
         },
         node.get("data") match {
@@ -261,7 +261,7 @@ class S3CurrentDatastore(val name: String) extends Datastore {
     }
 
     val mtime = if( d.recordSet.records.isEmpty ) {
-        DateTime.now
+        Instant.now
       } else {
         d.recordSet.records.head.mtime
       }

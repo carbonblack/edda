@@ -28,7 +28,7 @@ import com.netflix.edda.BeanMapper
 import com.netflix.edda.basic.BasicBeanMapper
 import com.netflix.edda.Utils
 import com.netflix.edda.ObserverExecutionContext
-import org.joda.time.DateTime
+import java.time.Instant
 import software.amazon.awssdk.core.exception.SdkServiceException
 import software.amazon.awssdk.services.ec2.model.DescribeAddressesRequest
 import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest
@@ -186,7 +186,7 @@ class AwsAutoScalingGroupCrawler(val name: String, val ctx: AwsCrawler.Context) 
         response.autoScalingGroups().asScala.map(
           item => {
             tagCount += item.tags().size
-            Record(item.autoScalingGroupName(), new DateTime(item.createdTime()), ctx.beanMapper(item))
+            Record(item.autoScalingGroupName(), item.createdTime(), ctx.beanMapper(item))
           }).toList
       }
     }
@@ -367,7 +367,7 @@ class AwsLoadBalancerCrawler(val name: String, val ctx: AwsCrawler.Context) exte
         this.nextToken = Option(response.nextMarker())
         response.loadBalancerDescriptions().asScala.map(
           item => {
-            Record(item.loadBalancerName(), new DateTime(item.createdTime()), ctx.beanMapper(item))
+            Record(item.loadBalancerName(), item.createdTime(), ctx.beanMapper(item))
           }).toList
       }
     }
@@ -436,7 +436,7 @@ class AwsLoadBalancerV2Crawler(val name: String, val ctx: AwsCrawler.Context) ex
             val listenersList = if (listeners == null) Nil else listeners.asScala.map(item => ctx.beanMapper(item)).toList
             val data = ctx.beanMapper(item).asInstanceOf[Map[String, Any]] ++ Map("listeners" -> listenersList)
 
-            Record(item.loadBalancerName, new DateTime(item.createdTime), data)
+            Record(item.loadBalancerName, item.createdTime, data)
           }
         ).toList
       }
@@ -601,7 +601,7 @@ class AwsLaunchConfigurationCrawler(val name: String, val ctx: AwsCrawler.Contex
         val response = backoffRequest { ctx.awsClient.asg.describeLaunchConfigurations(request.toBuilder().nextToken(this.nextToken.get).build()) }
         this.nextToken = Option(response.nextToken)
         response.launchConfigurations.asScala.map(
-          item => Record(item.launchConfigurationName, new DateTime(item.createdTime), ctx.beanMapper(item))).toList
+          item => Record(item.launchConfigurationName, item.createdTime, ctx.beanMapper(item))).toList
       }
     }
     it.toList.flatten
@@ -680,7 +680,7 @@ class AwsInstanceCrawler(val name: String, val ctx: AwsCrawler.Context, val craw
           (inst: Map[String, Any]) => rec.copy(
             id = inst("instanceId").asInstanceOf[String],
             data = inst,
-            ctime = inst("launchTime").asInstanceOf[DateTime]))
+            ctime = inst("launchTime").asInstanceOf[Instant]))
         case other => throw new java.lang.RuntimeException("failed to crawl instances from reservation, got: " + other)
       }
     })
@@ -755,7 +755,7 @@ class AwsSnapshotCrawler(val name: String, val ctx: AwsCrawler.Context) extends 
     val list = backoffRequest { ctx.awsClient.ec2.describeSnapshots(request).snapshots }.asScala.map(
       item => {
         tagCount += item.tags.size
-        Record(item.snapshotId, new DateTime(item.startTime), ctx.beanMapper(item))
+        Record(item.snapshotId, item.startTime, ctx.beanMapper(item))
       }).toSeq
     if (tagCount == 0 && abortWithoutTags.get.toBoolean) {
       throw new java.lang.RuntimeException("no tags found for " + name + ", ignoring crawl results")
@@ -790,7 +790,7 @@ class AwsVolumeCrawler(val name: String, val ctx: AwsCrawler.Context) extends Cr
     val list = backoffRequest { ctx.awsClient.ec2.describeVolumes(request).volumes }.asScala.map(
       item => {
         tagCount += item.tags.size
-        Record(item.volumeId, new DateTime(item.createTime), ctx.beanMapper(item))
+        Record(item.volumeId, item.createTime, ctx.beanMapper(item))
       }).toSeq
     if (tagCount == 0 && abortWithoutTags.get.toBoolean) {
       throw new java.lang.RuntimeException("no tags found for " + name + ", ignoring crawl results")
@@ -808,7 +808,7 @@ class AwsBucketCrawler(val name: String, val ctx: AwsCrawler.Context) extends Cr
   val request = ListBucketsRequest.builder().build()
 
   override def doCrawl()(implicit req: RequestId) = backoffRequest { ctx.awsClient.s3.listBuckets(request).buckets }.asScala.map(
-    item => Record(item.name, new DateTime(item.creationDate), ctx.beanMapper(item))).toSeq
+    item => Record(item.name, item.creationDate, ctx.beanMapper(item))).toSeq
 }
 
 /** crawler for IAM Users
@@ -834,7 +834,7 @@ class AwsIamUserCrawler(val name: String, val ctx: AwsCrawler.Context) extends C
               val accessKeys = Map[String, String]() ++ backoffRequest { ctx.awsClient.identitymanagement.listAccessKeys(accessKeysRequest).accessKeyMetadata }.asScala.map(item => ctx.beanMapper(item)).toSeq
               val userPoliciesRequest = ListUserPoliciesRequest.builder().userName(user.userName).build()
               val userPolicies = backoffRequest { ctx.awsClient.identitymanagement.listUserPolicies(userPoliciesRequest).policyNames.asScala }
-              Record(user.userName, new DateTime(user.createDate), Map("name" -> user.userName, "attributes" -> (ctx.beanMapper(user)), "groups" -> groups, "accessKeys" -> accessKeys, "userPolicies" -> userPolicies))
+              Record(user.userName, user.createDate, Map("name" -> user.userName, "attributes" -> (ctx.beanMapper(user)), "groups" -> groups, "accessKeys" -> accessKeys, "userPolicies" -> userPolicies))
             }
           }
         )
@@ -883,7 +883,7 @@ class AwsIamGroupCrawler(val name: String, val ctx: AwsCrawler.Context) extends 
             def call() = {
               val groupPoliciesRequest = ListGroupPoliciesRequest.builder().groupName(group.groupName).build()
               val groupPolicies = backoffRequest { ctx.awsClient.identitymanagement.listGroupPolicies(groupPoliciesRequest).policyNames.asScala.toSeq }
-              Record(group.groupName, new DateTime(group.createDate), Map("name" -> group.groupName, "attributes" -> (ctx.beanMapper(group)), "policies" -> groupPolicies))
+              Record(group.groupName, group.createDate, Map("name" -> group.groupName, "attributes" -> (ctx.beanMapper(group)), "policies" -> groupPolicies))
             }
           }
         )
@@ -922,7 +922,7 @@ class AwsIamRoleCrawler(val name: String, val ctx: AwsCrawler.Context) extends C
   val request = ListRolesRequest.builder().build()
 
   override def doCrawl()(implicit req: RequestId) = backoffRequest { ctx.awsClient.identitymanagement.listRoles(request).roles }.asScala.map(
-    item => Record(item.roleName, new DateTime(item.createDate), ctx.beanMapper(item))).toSeq
+    item => Record(item.roleName, item.createDate, ctx.beanMapper(item))).toSeq
 }
 
 /** crawler for IAM policies
@@ -944,7 +944,7 @@ class AwsIamPolicyCrawler(val name: String, val ctx: AwsCrawler.Context) extends
 
         val data = ctx.beanMapper(item).asInstanceOf[Map[String, Any]] ++ Map("defaultDocument" -> version.document)
 
-        Record(item.policyName, new DateTime(item.updateDate), data)
+        Record(item.policyName, item.updateDate, data)
       }).toSeq
   }
 }
@@ -957,7 +957,7 @@ class AwsIamPolicyVersionCrawler(val name: String, val ctx: AwsCrawler.Context) 
   val request = ListPolicyVersionsRequest.builder().build()
 
   override def doCrawl()(implicit req: RequestId) = ctx.awsClient.identitymanagement.listPolicyVersions(request).versions.asScala.map(
-    item => Record(item.versionId, new DateTime(item.createDate), ctx.beanMapper(item))).toSeq
+    item => Record(item.versionId, item.createDate, ctx.beanMapper(item))).toSeq
 }
 
 /** crawler for IAM Virtual MFA Devices
@@ -969,7 +969,7 @@ class AwsIamVirtualMFADeviceCrawler(val name: String, val ctx: AwsCrawler.Contex
   val request = ListVirtualMFADevicesRequest.builder().build()
 
   override def doCrawl()(implicit req: RequestId) = backoffRequest { ctx.awsClient.identitymanagement.listVirtualMFADevices(request).virtualMFADevices }.asScala.map(
-    item => Record(item.serialNumber.split('/').last, new DateTime(item.enableDate), ctx.beanMapper(item))).toSeq
+    item => Record(item.serialNumber.split('/').last, item.enableDate, ctx.beanMapper(item))).toSeq
 }
 
 /** crawler for SQS Queues
@@ -996,8 +996,8 @@ class AwsSimpleQueueCrawler(val name: String, val ctx: AwsCrawler.Context) exten
               val attrRequest = GetQueueAttributesRequest.builder().queueUrl(queueUrl).attributeNames("All").build()
               val attrs = Map[String, String]() ++ backoffRequest { ctx.awsClient.sqs.getQueueAttributes(attrRequest).attributes.asScala }
               val ctime = attrs.get("CreatedTimestamp") match {
-                case Some(time) => new DateTime(time.toInt * 1000)
-                case None => DateTime.now
+                case Some(time) => Instant.ofEpochSecond(time.toInt)
+                case None => Instant.now
               }
 
               Record(name, ctime, Map("name" -> name, "url" -> queueUrl, "attributes" -> (attrs)))
@@ -1052,7 +1052,7 @@ class AwsReservedInstanceCrawler(val name: String, val ctx: AwsCrawler.Context) 
   val request = DescribeReservedInstancesRequest.builder().build()
 
   override def doCrawl()(implicit req: RequestId) = backoffRequest { ctx.awsClient.ec2.describeReservedInstances(request).reservedInstances }.asScala.map(
-    item => Record(item.reservedInstancesId, new DateTime(item.start), ctx.beanMapper(item))).toSeq
+    item => Record(item.reservedInstancesId, item.start, ctx.beanMapper(item))).toSeq
 }
 
 /** crawler for ReservedInstancesOfferings
@@ -1313,7 +1313,7 @@ class AwsCloudformationCrawler(val name: String, val ctx: AwsCrawler.Context) ex
             def call() = {
               val stackResourcesRequest = ListStackResourcesRequest.builder().stackName(stack.stackName).build()
               val stackResources = backoffRequest { ctx.awsClient.cloudformation.listStackResources(stackResourcesRequest).stackResourceSummaries.asScala.map(item => ctx.beanMapper(item)) }
-              Record(stack.stackName, new DateTime(stack.creationTime), ctx.beanMapper(stack).asInstanceOf[Map[String,Any]] ++ Map("resources" -> stackResources))
+              Record(stack.stackName, stack.creationTime, ctx.beanMapper(stack).asInstanceOf[Map[String,Any]] ++ Map("resources" -> stackResources))
             }
           }
         )

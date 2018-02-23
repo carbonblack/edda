@@ -20,7 +20,7 @@ import scala.util.Random
 
 import org.slf4j.LoggerFactory
 
-import org.joda.time.DateTime
+import java.time.Instant
 
 class CollectionRefresher(collection: Collection) extends Actor {
   val logger = LoggerFactory.getLogger(getClass)
@@ -34,8 +34,8 @@ class CollectionRefresher(collection: Collection) extends Actor {
   lazy val purgeFrequency = Utils.getProperty("edda.collection", "purgeFrequency", collection.name, "21600000")
   
   /** helper routine to calculate timeLeft before a Crawl request shoudl be made */
-  def timeLeft(lastRun: DateTime, millis: Long): Long = {
-    val timeLeft = millis - (DateTime.now.getMillis - lastRun.getMillis)
+  def timeLeft(lastRun: Instant, millis: Long): Long = {
+    val timeLeft = millis - (Instant.now.toEpochMilli - lastRun.toEpochMilli)
     if (timeLeft < 0) 0 else timeLeft
   }
 
@@ -47,7 +47,7 @@ class CollectionRefresher(collection: Collection) extends Actor {
         implicit val req = RequestId(s"$this init")
         if (amLeader && collection.allowCrawl) collection.crawler.crawl()
 
-        var lastRun = DateTime.now
+        var lastRun = Instant.now
         var keepLooping = true
         Actor.self.loopWhile(keepLooping) {
           implicit val req = RequestId(Utils.uuid + " refresh")
@@ -70,7 +70,7 @@ class CollectionRefresher(collection: Collection) extends Actor {
                   if (logger.isDebugEnabled) logger.debug(s"$req${Actor.self} sending: $msg -> $collection")
                   collection.processor ! msg
                 }
-              lastRun = DateTime.now
+              lastRun = Instant.now
             }
             case msg @ Elector.ElectionResult(from, result) => {
               if (logger.isDebugEnabled) logger.debug(s"$req${Actor.self} received: $msg from $sender")
@@ -85,7 +85,7 @@ class CollectionRefresher(collection: Collection) extends Actor {
                 Actor.self.reactWithin(300000) {
                   case msg @ CollectionProcessor.OK(frm) => {
                     if( collection.allowCrawl ) collection.crawler.crawl()
-                    lastRun = DateTime.now
+                    lastRun = Instant.now
                     amLeader = result
                   }
                   case msg @ TIMEOUT => {

@@ -804,7 +804,7 @@ class GroupAutoScalingGroups(
             if( newInstances.contains(id) ) {
               val slot = instance("slot").asInstanceOf[Int]
               if( newInstances(id) != slot ) {
-                val msg = this.toString + " Slot reassignment for instance " + id + " from " + slot + " [stime=" + rec.stime.getMillis + "] to " + newInstances(id)
+                val msg = this.toString + " Slot reassignment for instance " + id + " from " + slot + " [stime=" + rec.stime.toEpochMilli + "] to " + newInstances(id)
                 logger.error(s"$req $msg")
                 if( ! Utils.getProperty("edda","collection.allowSlotReassign",name,"false").get.toBoolean ) {
                   throw new java.lang.RuntimeException(msg)

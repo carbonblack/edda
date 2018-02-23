@@ -318,7 +318,7 @@ class CollectionResource {
         if (!details.timeTravelling) {
           val recs = selectRecords(collName, details.copy(metaArgs = details.metaArgs ++ Map("_live" -> null, "_since" -> "0", "_limit" -> "1")))
           if (!recs.isEmpty) {
-            return fail("record \"" + details.id + "\" is no longer valid in collection " + collName + ". Use _at, _since or _all arguments to fetch historical records.  Last seen at " + recs.head.stime.getMillis, Response.Status.GONE)
+            return fail("record \"" + details.id + "\" is no longer valid in collection " + collName + ". Use _at, _since or _all arguments to fetch historical records.  Last seen at " + recs.head.stime.toEpochMilli, Response.Status.GONE)
           }
         }
         return fail("record \"" + details.id + "\" not found in collection " + collName, Response.Status.NOT_FOUND)

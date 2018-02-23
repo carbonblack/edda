@@ -28,7 +28,7 @@ import com.netflix.servo.monitor.MonitorConfig
 import com.netflix.servo.monitor.BasicGauge
 import com.netflix.servo.DefaultMonitorRegistry
 
-import org.joda.time.DateTime
+import java.time.Instant
 
 import org.slf4j.LoggerFactory
 
@@ -64,25 +64,25 @@ class CollectionProcessor(collection: Collection) extends Observable {
   private[this] val updateCounter = Monitors.newCounter("update.count")
   private[this] val updateErrorCounter = Monitors.newCounter("update.errors")
 
-  private[this] var lastCrawl = DateTime.now
+  private[this] var lastCrawl = Instant.now
   private[this] val crawlGauge = new BasicGauge[java.lang.Long](
     MonitorConfig.builder("lastCrawl").build(),
     new Callable[java.lang.Long] {
       def call() = {
         if (collection.elector.isLeader()(RequestId("lastCrawlGauge"))) {
-          DateTime.now.getMillis - lastCrawl.getMillis
+          Instant.now.minusMillis(lastCrawl.toEpochMilli).toEpochMilli
         } else 0
       }
     })
 
-  private[this] var lastLoad = DateTime.now
+  private[this] var lastLoad = Instant.now
   private[this] val loadGauge = new BasicGauge[java.lang.Long](
     MonitorConfig.builder("lastLoad").build(),
     new Callable[java.lang.Long] {
       def call() = {
         if (collection.elector.isLeader()(RequestId("lastLoadGauge"))) {
           0
-        } else DateTime.now.getMillis - lastLoad.getMillis
+        } else Instant.now.minusMillis(lastLoad.toEpochMilli).toEpochMilli
       }
     })
 
@@ -107,7 +107,7 @@ class CollectionProcessor(collection: Collection) extends Observable {
       val msg2 = OK(this)
       if (logger.isDebugEnabled) logger.debug(s"$req$this sending: $msg2 -> $replyTo")
       replyTo ! msg2
-      lastLoad = DateTime.now
+      lastLoad = Instant.now
       state
     }
     case (gotMsg @ Load(from), state) => {
@@ -127,21 +127,21 @@ class CollectionProcessor(collection: Collection) extends Observable {
       val msg = Crawler.CrawlResult(this, recordSet)
       if (logger.isDebugEnabled) logger.debug(s"$req$this sending: $msg -> $this")
       this ! msg
-      lastLoad = DateTime.now
+      lastLoad = Instant.now
       state
     }
     case (gotMsg @ Crawler.CrawlResult(from, newRecordSet), state) => {
       implicit val req = gotMsg.req
-      lastCrawl = DateTime.now
+      lastCrawl = Instant.now
       def processDelta(d: Collection.Delta) = {
         lazy val path = collection.name.replace('.', '/')
         d.added.foreach(
           rec => {
-            if (logger.isInfoEnabled) logger.info("{} Added {}/{};_pp;_at={}", Utils.toObjects(req, path, rec.id, rec.stime.getMillis))
+            if (logger.isInfoEnabled) logger.info("{} Added {}/{};_pp;_at={}", Utils.toObjects(req, path, rec.id, rec.stime.toEpochMilli))
           })
         d.removed.foreach(
           rec => {
-            if (logger.isInfoEnabled) logger.info("{} Removing {}/{};_pp;_at={}", Utils.toObjects(req, path, rec.id, rec.stime.getMillis))
+            if (logger.isInfoEnabled) logger.info("{} Removing {}/{};_pp;_at={}", Utils.toObjects(req, path, rec.id, rec.stime.toEpochMilli))
           })
         d.changed.foreach(
           update => {
@@ -150,7 +150,7 @@ class CollectionProcessor(collection: Collection) extends Observable {
               if (logger.isInfoEnabled) logger.info(s"$req\n$diff")
             } else {
               if( logger.isInfoEnabled) {
-                logger.info(s"$req Updated $path/${update.newRecord.id};_pp;_at=${update.newRecord.stime.getMillis} previous=${update.oldRecord.stime.getMillis}")
+                logger.info(s"$req Updated $path/${update.newRecord.id};_pp;_at=${update.newRecord.stime.toEpochMilli} previous=${update.oldRecord.stime.toEpochMilli}")
               }
             }
           })
