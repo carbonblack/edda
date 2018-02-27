@@ -83,7 +83,7 @@ object DynamoDB {
     }
     catch {
       case e: ResourceNotFoundException => {
-        logger.error(s"$req Dynamo record for $name not found", e)
+        logger.error(s"$req Dynamo record for $name -> $value not found", e)
         return None
       }
       case e: ProvisionedThroughputExceededException => {

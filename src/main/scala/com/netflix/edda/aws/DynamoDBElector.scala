@@ -22,7 +22,6 @@ import com.netflix.edda.RequestId
 
 import org.slf4j.LoggerFactory
 
-import org.joda.time.DateTime
 import java.time.Instant
 
 /** [[com.netflix.edda.Elector]] subclass that uses DynamoDB's write contstraint operations
@@ -89,6 +88,7 @@ class DynamoDBElector extends Elector {
     }
     if( response == null || response.isEmpty ) {
       // no record found, so this is the first time we are creating a record
+      if (logger.isInfoEnabled) logger.info(s"$req$this No leader record found")
       val t0 = System.nanoTime()
       try {
         DynamoDB.put(
@@ -121,6 +121,7 @@ class DynamoDBElector extends Elector {
       val item = response.get
 
       leader = item("instance")
+      if (logger.isInfoEnabled) logger.info(s"$req$this Current leader is $leader")
       if( leader == instance ) {
         // update mtime
         val t0 = System.nanoTime()

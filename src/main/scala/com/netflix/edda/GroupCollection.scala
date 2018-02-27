@@ -18,7 +18,7 @@ package com.netflix.edda
 import scala.actors.Actor
 import scala.actors.TIMEOUT
 
-import org.joda.time.DateTime
+import java.time.Instant
 import org.slf4j.Logger
 
 /** trait to add grouping behavior to a collection.  /group apis are special in that
@@ -39,7 +39,7 @@ trait GroupCollection extends Collection {
   override protected[edda] def allowCrawl = false
 
   implicit def recordOrdering: Ordering[Record] = Ordering.fromLessThan(_.stime isBefore _.stime)
-  implicit def timeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isAfter _)
+  implicit def timeOrdering: Ordering[Instant] = Ordering.fromLessThan(_ isAfter _)
 
   /** special query where we merge multiple query results for the same record ids into one record.  For
     * autoScalingGroups there will be "instances", if there are many revisions to these instances we want

@@ -20,8 +20,6 @@ import scala.actors.TIMEOUT
 
 import org.slf4j.LoggerFactory
 
-import org.joda.time.DateTime
-
 class ElectorPoller(elector: Elector) extends Actor {
   val logger = LoggerFactory.getLogger(getClass)
 

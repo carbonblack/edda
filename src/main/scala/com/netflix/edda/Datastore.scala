@@ -15,8 +15,6 @@
  */
 package com.netflix.edda
 
-import org.joda.time.DateTime
-
 /** basic interface for data stores to persist Crawler/Collection state */
 trait Datastore {
   /** setup data store connections */
