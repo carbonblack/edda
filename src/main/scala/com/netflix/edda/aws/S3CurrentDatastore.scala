@@ -123,7 +123,7 @@ class S3CurrentDatastore(val name: String) extends Datastore {
     var md5: String = null
     var mtime = Instant.now
     var userMeta = Map[String,String]()
-    val bytes = try {
+    val bytes: Array[Byte] = try {
       val request = GetObjectRequest.builder().bucket(bucketName).key(location).build()
       val response: ResponseBytes[GetObjectResponse] = s3.getObject(request,  StreamingResponseHandler.toBytes())
       val s3Object = response.response()
@@ -135,10 +135,20 @@ class S3CurrentDatastore(val name: String) extends Datastore {
       logger.info(s"$req$this Loaded $name: $location [$md5] ($origReqId) modifed: $mtime")
       val out = response.asByteArray()
       out
-    } finally {
+    } catch  {
+      case e: NoSuchKeyException => {
+        logger.info(s"$req$this no key found at $location")
+        val out = Array[Byte]()
+        out
+      }
+    }finally {
       val t1 = System.nanoTime()
       val lapse = (t1 - t0) / 1000000;
       if (logger.isInfoEnabled) logger.info(s"$req$this s3 read lapse: ${lapse}ms")
+    }
+
+    if (bytes.length == 0) {
+      return RecordSet(Seq[Record](), Map("location" -> location, "mtime" -> mtime))
     }
 
     var newMD5 = Base64.encodeBase64String(MessageDigest.getInstance("MD5").digest(bytes)).trim

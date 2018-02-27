@@ -23,6 +23,7 @@ import com.netflix.edda.RequestId
 import org.slf4j.LoggerFactory
 
 import org.joda.time.DateTime
+import java.time.Instant
 
 /** [[com.netflix.edda.Elector]] subclass that uses DynamoDB's write contstraint operations
   * to organize leadership
@@ -72,7 +73,7 @@ class DynamoDBElector extends Elector {
       return false
     }
     implicit val client = writeDynamo
-    val now = DateTime.now
+    val now = Instant.now
     var leader = instance
 
     var isLeader = false
@@ -95,7 +96,7 @@ class DynamoDBElector extends Elector {
           Map(
             "name" -> "leader",
             "instance" -> instance,
-            "mtime" -> DateTime.now.getMillis,
+            "mtime" -> Instant.now.toEpochMilli,
             "req" -> req.id
           ),
           Map(
@@ -129,7 +130,7 @@ class DynamoDBElector extends Elector {
             Map(
               "name" -> "leader",
               "instance" -> instance,
-              "mtime" -> DateTime.now.getMillis,
+              "mtime" -> Instant.now.toEpochMilli,
               "req" -> req.id
             ),
             Map(
@@ -150,9 +151,9 @@ class DynamoDBElector extends Elector {
           if (logger.isInfoEnabled) logger.info(s"$req$this index leader (update mtime) lapse: ${lapse}ms")
         }
       } else {
-        val mtime = new DateTime(item("mtime").toLong)
+        val mtime = Instant.ofEpochMilli(item("mtime").toLong)
         
-        val timeout = DateTime.now().plusMillis(-1 * (pollCycle.get.toInt + leaderTimeout.get.toInt))
+        val timeout = Instant.now.minusMillis(pollCycle.get.toInt + leaderTimeout.get.toInt)
         if (mtime.isBefore(timeout)) {
           // assume leader is dead, so try to become leader
           val t0 = System.nanoTime()
@@ -162,7 +163,7 @@ class DynamoDBElector extends Elector {
               Map(
                 "name" -> "leader",
                 "instance" -> instance,
-                "mtime" -> DateTime.now.getMillis,
+                "mtime" -> Instant.now.toEpochMilli,
                 "req" -> req.id
               ),
               Map(

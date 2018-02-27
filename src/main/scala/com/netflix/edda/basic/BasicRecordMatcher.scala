@@ -19,6 +19,7 @@ import com.netflix.edda.RecordMatcher
 
 import java.util.Date
 import org.joda.time.DateTime
+import java.time.Instant
 
 /** This class allows advanced query options against in-memory records. */
 
@@ -73,10 +74,17 @@ class BasicRecordMatcher extends RecordMatcher {
     case (found: DateTime, expected: Long) => found.getMillis.compareTo(expected)
     case (found: DateTime, expected: DateTime) => found.compareTo(expected)
     case (found: DateTime, expected: Date) => found.toDate.compareTo(expected)
+    case (found: DateTime, expected: Instant) => Instant.ofEpochMilli(found.getMillis).compareTo(expected)
+
+    case (found: Instant, expected: Long) => found.toEpochMilli.compareTo(expected)
+    case (found: Instant, expected: DateTime) => new DateTime(found.toEpochMilli).compareTo(expected)
+    case (found: Instant, expected: Date) => Date.from(found).compareTo(expected)
+    case (found: Instant, expected: Instant) => found.compareTo(expected)
 
     case (found: Date, expected: Long) => found.getTime.compareTo(expected)
     case (found: Date, expected: Date) => found.compareTo(expected)
     case (found: Date, expected: DateTime) => found.compareTo(expected.toDate)
+    case (found: Date, expected: Instant) => Instant.ofEpochMilli(found.getTime).compareTo(expected)
 
     case (found: String, expected: Byte) => found.compareTo(expected.toChar.toString)
     case (found: String, expected) => found.compareTo(expected.toString)

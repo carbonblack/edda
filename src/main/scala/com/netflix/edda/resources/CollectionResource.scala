@@ -38,7 +38,7 @@ import org.codehaus.jackson.map.MappingJsonFactory
 
 import org.slf4j.LoggerFactory
 
-import org.joda.time.DateTime
+import java.time.Instant
 
 /** resource class to query collections registered with the CollectionManager */
 @Path("/v2")
@@ -266,10 +266,10 @@ class CollectionResource {
       }
     }
 
-    private def timeArg(v: Option[String]): DateTime = {
+    private def timeArg(v: Option[String]): Instant = {
       v match {
-        case Some(t) => new DateTime(t.toLong, org.joda.time.DateTimeZone.UTC)
-        case None => DateTime.now()
+        case Some(t) => Instant.ofEpochMilli(t.toLong)
+        case None => Instant.now
       }
     }
 

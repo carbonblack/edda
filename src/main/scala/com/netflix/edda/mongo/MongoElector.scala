@@ -102,7 +102,7 @@ class MongoElector extends Elector {
         // maybe we were too slow and someone took leader from us
         isLeader = if (result == null) false else true
       } else {
-        val timeout = Instant.now().plusMillis(-1 * (pollCycle.get.toInt + leaderTimeout.get.toInt))
+        val timeout = Instant.now().minusMillis(pollCycle.get.toInt + leaderTimeout.get.toInt)
         if (mtime.isBefore(timeout)) {
           // assumer leader is dead, so try to become leader
           val result = mongo.findAndModify(

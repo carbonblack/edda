@@ -19,6 +19,8 @@ import java.util.Date
 
 import org.joda.time.DateTime
 
+import java.time.Instant
+
 import com.netflix.edda.Record
 
 import org.slf4j.LoggerFactory
@@ -49,19 +51,33 @@ class BasicRecordMatcherTest extends FunSuite with MustMatchers {
 
     matcher.doesMatch(Map("data" -> new Date(0)), record) must be(aMatch)
     matcher.doesMatch(Map("data" -> new DateTime(0)), record) must be(aMatch)
+    matcher.doesMatch(Map("data" -> Instant.ofEpochMilli(0)), record) must be(aMatch)
     matcher.doesMatch(Map("data" -> 0L), record) must be(aMatch)
     matcher.doesMatch(Map("data" -> new Date(1)), record) must be(aMisMatch)
     matcher.doesMatch(Map("data" -> new DateTime(1)), record) must be(aMisMatch)
+    matcher.doesMatch(Map("data" -> Instant.ofEpochMilli(1)), record) must be(aMisMatch)
     matcher.doesMatch(Map("data" -> 1L), record) must be(aMisMatch)
 
     val dtRecord = Record("id", new DateTime(0)).toMap
 
     matcher.doesMatch(Map("data" -> new Date(0)), dtRecord) must be(aMatch)
     matcher.doesMatch(Map("data" -> new DateTime(0)), dtRecord) must be(aMatch)
+    matcher.doesMatch(Map("data" -> Instant.ofEpochMilli(0)), dtRecord) must be(aMatch)
     matcher.doesMatch(Map("data" -> 0L), dtRecord) must be(aMatch)
     matcher.doesMatch(Map("data" -> new Date(1)), dtRecord) must be(aMisMatch)
     matcher.doesMatch(Map("data" -> new DateTime(1)), dtRecord) must be(aMisMatch)
     matcher.doesMatch(Map("data" -> 1L), dtRecord) must be(aMisMatch)
+
+    val iRecord = Record("id", Instant.ofEpochMilli(0)).toMap
+
+    matcher.doesMatch(Map("data" -> new Date(0)), iRecord) must be(aMatch)
+    matcher.doesMatch(Map("data" -> new DateTime(0)), iRecord) must be(aMatch)
+    matcher.doesMatch(Map("data" -> Instant.ofEpochMilli(0)), iRecord) must be(aMatch)
+    matcher.doesMatch(Map("data" -> 0L), iRecord) must be(aMatch)
+    matcher.doesMatch(Map("data" -> new Date(1)), iRecord) must be(aMisMatch)
+    matcher.doesMatch(Map("data" -> new DateTime(1)), iRecord) must be(aMisMatch)
+    matcher.doesMatch(Map("data" -> Instant.ofEpochMilli(1)), iRecord) must be(aMisMatch)
+    matcher.doesMatch(Map("data" -> 1L), iRecord) must be(aMisMatch)    
   }
 
   test("string") {

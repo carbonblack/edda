@@ -397,7 +397,7 @@ class ElasticSearchDatastore(val name: String) extends Datastore {
         throw new java.lang.RuntimeException(builder.request.indices.mkString(",") + " shard failures")
       }
       if( idQuery ) {
-        val now = DateTime.now
+        val now = Instant.now
         searchResp.getFacets().facet[TermsFacet]("f").getEntries().asScala.map(f => f.getTerm().toString()).toSet.map( (id: String) => Record(id,null) ).toSeq
       } else {
         searchResp.getHits().asScala.map(r => {

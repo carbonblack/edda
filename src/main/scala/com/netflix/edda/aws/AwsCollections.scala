@@ -31,7 +31,7 @@ import com.netflix.edda.RequestId
 import com.netflix.edda.Datastore
 import com.netflix.edda.BeanMapper
 
-import org.joda.time.DateTime
+import java.time.Instant
 
 import org.slf4j.LoggerFactory
 
@@ -791,10 +791,9 @@ class GroupAutoScalingGroups(
           "data.instances.instanceId" -> Map("$in" -> addedInstances.toSeq),
           "$or" -> List(
             Map("ltime" -> null),
-            Map("ltime" -> Map("$gt" -> DateTime.now.minusDays(2)))
+            Map("ltime" -> Map("$gt" -> Instant.now.minusSeconds(2 * 3600)))
           )
         )
-
         val recs = dataStore.get.query(query, limit=0, keys=Set("data.instances.instanceId", "data.instances.slot", "stime"), replicaOk=false)
 
         recs.foreach( rec => {
