@@ -76,7 +76,7 @@ object DynamoDB {
 
   def get(tableName: String, name: String, value: String)(implicit client: DynamoDBClient, req: RequestId): Option[Map[String,String]] = {
     import collection.JavaConverters._
-    logger.info(s"$req performing get on $name -> %value")
+    logger.info(s"$req performing get on $name -> $value")
     val getRequest = GetItemRequest.builder().tableName(tableName).key(Map(name->AttributeValue.builder().s(value).build()).asJava).consistentRead(true).build()
     var t0 = System.nanoTime()
     val item = try {
