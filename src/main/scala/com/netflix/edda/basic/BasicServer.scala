@@ -47,7 +47,8 @@ class BasicServer extends HttpServlet {
     val electorClass = this.getClass.getClassLoader.loadClass(electorClassName)
 
     val elector = electorClass.newInstance.asInstanceOf[Elector]
-
+    if (logger.isInfoEnabled) logger.info(s"$req Using elector $electorClassName")
+    
     val bm = new BasicBeanMapper with AwsBeanMapper
 
     val awsClientFactory = (account: String) => new AwsClient(account)

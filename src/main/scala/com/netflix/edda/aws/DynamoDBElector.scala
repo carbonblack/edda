@@ -97,7 +97,7 @@ class DynamoDBElector extends Elector {
           Map(
             "name" -> "leader",
             "instance" -> instance,
-            "mtime" -> Instant.now.toEpochMilli,
+            "mtime" -> now.toEpochMilli,
             "req" -> req.id
           ),
           Map(
@@ -120,7 +120,6 @@ class DynamoDBElector extends Elector {
       // record found, if we are leader update mtime
       // if we are not leader check to see if leader record has expired and they try to become leader
       val item = response.get
-
       leader = item("instance")
       if (logger.isInfoEnabled) logger.info(s"$req$this Current leader is $leader")
       if( leader == instance ) {
@@ -132,7 +131,7 @@ class DynamoDBElector extends Elector {
             Map(
               "name" -> "leader",
               "instance" -> instance,
-              "mtime" -> Instant.now.toEpochMilli,
+              "mtime" -> now.toEpochMilli,
               "req" -> req.id
             ),
             Map(
@@ -165,7 +164,7 @@ class DynamoDBElector extends Elector {
               Map(
                 "name" -> "leader",
                 "instance" -> instance,
-                "mtime" -> Instant.now.toEpochMilli,
+                "mtime" -> now.toEpochMilli,
                 "req" -> req.id
               ),
               Map(

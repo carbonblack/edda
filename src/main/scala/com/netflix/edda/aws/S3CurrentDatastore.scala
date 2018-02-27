@@ -59,7 +59,7 @@ class S3CurrentDatastore(val name: String) extends Datastore {
     }
   }
 
-  val s3 = {
+  lazy val s3 = {
     val s3Client = new AwsClient(account).s3
     val request = GetBucketLocationRequest.builder().bucket(bucketName).build()
     val client = new AwsClient(account, s3Client.getBucketLocation(request).locationConstraintString()).s3
