@@ -132,7 +132,7 @@ class MongoElector extends Elector {
       }
     }
 
-    logger.info("{} Leader [{}]: {} [{}]", Array[AnyRef](req, instance, isLeader.toString, leader))
+    logger.info(s"$req Leader [$instance]: ${isLeader.toString} [$leader]")
     if (isLeader == false && instance == leader) {
         logger.warn("This node is registered as the leader but could not become the leader. If this issue does not resolve on its own there may be a problem with the datastore")
     }

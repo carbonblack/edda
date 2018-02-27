@@ -137,11 +137,11 @@ class CollectionProcessor(collection: Collection) extends Observable {
         lazy val path = collection.name.replace('.', '/')
         d.added.foreach(
           rec => {
-            if (logger.isInfoEnabled) logger.info("{} Added {}/{};_pp;_at={}", Utils.toObjects(req, path, rec.id, rec.stime.toEpochMilli))
+            if (logger.isInfoEnabled) logger.info(s"$req Added $path/${rec.id};_pp;_at=${rec.stime.toEpochMilli}")
           })
         d.removed.foreach(
           rec => {
-            if (logger.isInfoEnabled) logger.info("{} Removing {}/{};_pp;_at={}", Utils.toObjects(req, path, rec.id, rec.stime.toEpochMilli))
+            if (logger.isInfoEnabled) logger.info(s"$req Removing $path/${rec.id};_pp;_at=${rec.stime.toEpochMilli}")
           })
         d.changed.foreach(
           update => {
@@ -213,8 +213,10 @@ class CollectionProcessor(collection: Collection) extends Observable {
           } finally {
             stopwatch.stop()
           }
-          if (logger.isInfoEnabled) logger.info("{}{} Updated {} {} records(Changed: {}, Added: {}, Removed: {}) in {} sec", Utils.toObjects(
-            req, this, d.recordSet.records.size, d.recordSet.meta, d.changed.size, d.added.size, d.removed.size, stopwatch.getDuration(TimeUnit.MILLISECONDS) / 1000.0 -> "%.2f"))
+          if (logger.isInfoEnabled) {
+            val elasped = stopwatch.getDuration(TimeUnit.MILLISECONDS) / 1000.0
+            logger.info(s"$req$this Updated ${d.recordSet.records.size} ${d.recordSet.meta} records(Changed: ${d.changed.size}, Added: ${d.added.size}, Removed: ${d.removed.size}) in ${elasped} sec")
+          }
           newState
         } else {
           val msg = Collection.UpdateOK(this, d, origMeta)

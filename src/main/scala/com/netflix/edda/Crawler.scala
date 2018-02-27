@@ -174,7 +174,7 @@ abstract class Crawler extends Observable {
       val maxJitter = Utils.getProperty("edda.crawler", "jitter.max", name, "2000").get.toInt
       val rand = new Random
       val jitter = (maxJitter * rand.nextDouble).toLong
-      logger.debug("{} api request delayed by {}ms", this, jitter)
+      logger.debug(s"$this api request delayed by ${jitter}ms")
       Thread sleep jitter
     }
 
@@ -182,7 +182,7 @@ abstract class Crawler extends Observable {
     if (throttle.get.toBoolean) {
       try {
         if (retry_count > margin) {
-          logger.debug("{} SLEEPING [{}]: {}", Array(this, retry_count, marginalDelay))
+          logger.debug(s"$this SLEEPING [$retry_count]: $marginalDelay")
           Thread sleep marginalDelay
         }
         code

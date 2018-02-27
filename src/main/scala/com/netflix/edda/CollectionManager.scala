@@ -22,7 +22,7 @@ object CollectionManager {
   var collections: Map[String, Queryable] = Map()
 
   def register(name: String, collection: Queryable) {
-    if (logger.isInfoEnabled) logger.info("Registering collection " + collection)
+    if (logger.isInfoEnabled) logger.info(s"Registering collection $collection")
     collections = collections + (name -> collection)
   }
 

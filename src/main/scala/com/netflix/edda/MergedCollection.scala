@@ -88,14 +88,14 @@ class MergedCollection(val name: String, val collections: Seq[Collection]) exten
   override def start() = {
     Monitors.registerObject("edda.collection.merged." + name, this)
     DefaultMonitorRegistry.getInstance().register(Monitors.newThreadPoolMonitor(s"edda.collection.merged.$name.threadpool", this.pool.asInstanceOf[ThreadPoolExecutor]))
-    if (logger.isInfoEnabled) logger.info("Starting " + this)
+    if (logger.isInfoEnabled) logger.info(s"Starting $this")
     collections.foreach(_.start())
     super.start()
   }
 
   /** stop the actors for all the merged collections then stop this actor */
   override def stop()(implicit req: RequestId) {
-    if (logger.isInfoEnabled) logger.info("Stopping " + this)
+    if (logger.isInfoEnabled) logger.info(s"Stopping $this")
     collections.foreach(_.stop())
     super.stop()
   }
