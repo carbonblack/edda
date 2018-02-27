@@ -35,7 +35,7 @@ class CollectionRefresher(collection: Collection) extends Actor {
   
   /** helper routine to calculate timeLeft before a Crawl request shoudl be made */
   def timeLeft(lastRun: Instant, millis: Long): Long = {
-    val timeLeft = millis - (Instant.now.toEpochMilli - lastRun.toEpochMilli)
+    val timeLeft = millis - Instant.now.minusMillis(lastRun.toEpochMilli).toEpochMilli
     if (timeLeft < 0) 0 else timeLeft
   }
 

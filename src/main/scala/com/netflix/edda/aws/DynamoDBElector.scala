@@ -68,6 +68,7 @@ class DynamoDBElector extends Elector {
     * @return
     */
   protected override def runElection()(implicit req: RequestId): Boolean = {
+    if (logger.isInfoEnabled) logger.info(s"$req$this Running election")
     if( !inited ) {
       return false
     }
