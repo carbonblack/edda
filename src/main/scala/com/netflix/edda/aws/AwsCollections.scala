@@ -791,7 +791,7 @@ class GroupAutoScalingGroups(
           "data.instances.instanceId" -> Map("$in" -> addedInstances.toSeq),
           "$or" -> List(
             Map("ltime" -> null),
-            Map("ltime" -> Map("$gt" -> Instant.now.minusSeconds(2 * 3600)))
+            Map("ltime" -> Map("$gt" -> Instant.now.minusSeconds(2 * 86400)))
           )
         )
         val recs = dataStore.get.query(query, limit=0, keys=Set("data.instances.instanceId", "data.instances.slot", "stime"), replicaOk=false)

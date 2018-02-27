@@ -35,7 +35,8 @@ import com.netflix.config.DynamicStringProperty
 
 import org.joda.time.DateTime
 import java.time.Instant
-import java.time.format.DateTimeFormatterBuilder
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import org.slf4j.LoggerFactory
 
 import org.codehaus.jackson.JsonGenerator
@@ -340,7 +341,8 @@ object Utils {
       case v: Date => dateFormat.format(v)
       case v: DateTime => v.toDateTime(org.joda.time.DateTimeZone.UTC).toString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
       case v: Instant => {
-         val formatter = new DateTimeFormatterBuilder().appendInstant(3).toFormatter()
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+            .withZone(ZoneId.of("UTC"))
          formatter.format(v)
       }
       case v => v
